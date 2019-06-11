@@ -1,0 +1,24 @@
+{application, youtube_player,
+ [{description, "A youtube player server for anyone on local network to put songs on playlist"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {youtube_player_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    erlport,
+	lager,
+	meck
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["Apache 2.0"]},
+  {links, []},
+
+  {lager, [
+    {handlers, [
+      {lager_console_backend, [{level, debug}]}
+    ]}
+  ]}
+ ]}.

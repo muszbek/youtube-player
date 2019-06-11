@@ -1,0 +1,52 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "57b6022d2e54e625e4c4d2983cd3db1bc67572201c0a41ec99348e0599b7ed80"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.6"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "pafy": {
+            "hashes": [
+                "sha256:c6506070065829a0419276fc6a2649a5d35e77efdc91b792c2db8576d8b779d9",
+                "sha256:e842dc589a339a870b5869cc3802f2e95824edf347f65128223cd5ebdff21024"
+            ],
+            "index": "pypi",
+            "version": "==0.5.4"
+        },
+        "paho-mqtt": {
+            "hashes": [
+                "sha256:e440a052b46d222e184be3be38676378722072fcd4dfd2c8f509fb861a7b0b79"
+            ],
+            "index": "pypi",
+            "version": "==1.4.0"
+        },
+        "python-vlc": {
+            "hashes": [
+                "sha256:0c2c6b4e4b0cad162a694e7740a8571f12fd7eebacd5b55c93e457f917b89cd7",
+                "sha256:fd24075cde4febb9611d5be412ba8d3998a8c59d24dd9d1d2b76376dc831bc7b"
+            ],
+            "index": "pypi",
+            "version": "==3.0.6109"
+        },
+        "youtube-dl": {
+            "hashes": [
+                "sha256:46f6e30c673ba71de84748dad4c264d1b6fb30beebf1ef834846a651b4524a78",
+                "sha256:b20d110e1bed8d16f5771bb938ab6e5da67f08af62b599af65301cca290f2e15"
+            ],
+            "index": "pypi",
+            "version": "==2019.4.24"
+        }
+    },
+    "develop": {}
+}

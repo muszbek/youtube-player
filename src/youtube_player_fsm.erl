@@ -1,0 +1,295 @@
+%% @author tmuszbek
+%% @doc @todo Add description to youtube_player_fsm.
+
+
+-module(youtube_player_fsm).
+-behaviour(gen_fsm).
+-compile([{parse_transform, lager_transform}]).
+
+-export([init/1, handle_event/3, handle_sync_event/4, handle_info/3, terminate/3, code_change/4]).
+-export([down/2, down/3,
+		 idle/2, idle/3,
+		 playing/2, playing/3]).
+
+-define(SERVER, ?MODULE).
+
+%% ====================================================================
+%% API functions
+%% ====================================================================
+-export([start_link/0]).
+
+start_link() ->
+	gen_fsm:start_link({local, ?SERVER}, ?MODULE, [], []).
+
+
+
+%% ====================================================================
+%% Behavioural functions
+%% ====================================================================
+-record(state, {current_video="",
+				python_server_monitor}).
+
+%% init/1
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:init-1">gen_fsm:init/1</a>
+-spec init(Args :: term()) -> Result when
+	Result :: {ok, StateName, StateData}
+			| {ok, StateName, StateData, Timeout}
+			| {ok, StateName, StateData, hibernate}
+			| {stop, Reason}
+			| ignore,
+	StateName :: atom(),
+	StateData :: term(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: term().
+%% ====================================================================
+init([]) ->
+	lager:debug("init is called"),
+	Ref = monitor(process, python_server),	
+	%%this line cannot be in down() because the handle_info would call it infinitely
+    {ok, down, #state{python_server_monitor=Ref}}.
+
+
+%% %% down/2
+%% %% ====================================================================
+%% %% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
+%% -spec down(Event :: timeout | term(), StateData :: term()) -> Result when
+%% 	Result :: {next_state, NextStateName, NewStateData}
+%% 			| {next_state, NextStateName, NewStateData, Timeout}
+%% 			| {next_state, NextStateName, NewStateData, hibernate}
+%% 			| {stop, Reason, NewStateData},
+%% 	NextStateName :: atom(),
+%% 	NewStateData :: term(),
+%% 	Timeout :: non_neg_integer() | infinity,
+%% 	Reason :: term().
+%% %% ====================================================================
+% @todo implement actual state
+down(Event, StateData) ->
+	state_message(down, Event, async),
+    {next_state, idle, StateData}.
+
+%% down/3
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3">gen_fsm:StateName/3</a>
+-spec down(Event :: term(), From :: {pid(), Tag :: term()}, StateData :: term()) -> Result when
+	Result :: {reply, Reply, NextStateName, NewStateData}
+			| {reply, Reply, NextStateName, NewStateData, Timeout}
+			| {reply, Reply, NextStateName, NewStateData, hibernate}
+			| {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, Reply, NewStateData}
+			| {stop, Reason, NewStateData},
+	Reply :: term(),
+	NextStateName :: atom(),
+	NewStateData :: atom(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: normal | term().
+%% ====================================================================
+down(Event, _From, StateData) ->
+	state_message(down, Event, sync),
+    Reply = ok,
+    {reply, Reply, down, StateData}.
+
+
+%% %% idle/2
+%% %% ====================================================================
+%% %% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
+%% -spec idle(Event :: timeout | term(), StateData :: term()) -> Result when
+%% 	Result :: {next_state, NextStateName, NewStateData}
+%% 			| {next_state, NextStateName, NewStateData, Timeout}
+%% 			| {next_state, NextStateName, NewStateData, hibernate}
+%% 			| {stop, Reason, NewStateData},
+%% 	NextStateName :: atom(),
+%% 	NewStateData :: term(),
+%% 	Timeout :: non_neg_integer() | infinity,
+%% 	Reason :: term().
+%% %% ====================================================================
+% @todo implement actual state
+idle(Event, StateData) ->
+	state_message(idle, Event, async),
+    {next_state, idle, StateData}.
+
+%% idle/3
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3">gen_fsm:StateName/3</a>
+-spec idle(Event :: term(), From :: {pid(), Tag :: term()}, StateData :: term()) -> Result when
+	Result :: {reply, Reply, NextStateName, NewStateData}
+			| {reply, Reply, NextStateName, NewStateData, Timeout}
+			| {reply, Reply, NextStateName, NewStateData, hibernate}
+			| {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, Reply, NewStateData}
+			| {stop, Reason, NewStateData},
+	Reply :: term(),
+	NextStateName :: atom(),
+	NewStateData :: atom(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: normal | term().
+%% ====================================================================
+idle(Event, _From, StateData) ->
+	state_message(idle, Event, sync),
+    Reply = ok,
+    {reply, Reply, idle, StateData}.
+
+
+%% %% playing/2
+%% %% ====================================================================
+%% %% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
+%% -spec playing(Event :: timeout | term(), StateData :: term()) -> Result when
+%% 	Result :: {next_state, NextStateName, NewStateData}
+%% 			| {next_state, NextStateName, NewStateData, Timeout}
+%% 			| {next_state, NextStateName, NewStateData, hibernate}
+%% 			| {stop, Reason, NewStateData},
+%% 	NextStateName :: atom(),
+%% 	NewStateData :: term(),
+%% 	Timeout :: non_neg_integer() | infinity,
+%% 	Reason :: term().
+%% %% ====================================================================
+% @todo implement actual state
+playing(Event, StateData) ->
+	state_message(playing, Event, async),
+    {next_state, playing, StateData}.
+
+%% playing/3
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3">gen_fsm:StateName/3</a>
+-spec playing(Event :: term(), From :: {pid(), Tag :: term()}, StateData :: term()) -> Result when
+	Result :: {reply, Reply, NextStateName, NewStateData}
+			| {reply, Reply, NextStateName, NewStateData, Timeout}
+			| {reply, Reply, NextStateName, NewStateData, hibernate}
+			| {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, Reply, NewStateData}
+			| {stop, Reason, NewStateData},
+	Reply :: term(),
+	NextStateName :: atom(),
+	NewStateData :: atom(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: normal | term().
+%% ====================================================================
+playing(Event, _From, StateData) ->
+	state_message(playing, Event, sync),
+    Reply = ok,
+    {reply, Reply, playing, StateData}.
+
+
+%% handle_event/3
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_event-3">gen_fsm:handle_event/3</a>
+-spec handle_event(Event :: term(), StateName :: atom(), StateData :: term()) -> Result when
+	Result :: {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, NewStateData},
+	NextStateName :: atom(),
+	NewStateData :: term(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: term().
+%% ====================================================================
+handle_event(python_up, down, StateData) ->
+	lager:debug("python_up event"),
+	Ref = monitor(process, python_server),
+    {next_state, idle, StateData#state{python_server_monitor=Ref}};
+
+handle_event(python_up, StateName, StateData) ->
+	unexpected(event, python_up, StateName),
+	{stop, fsm_state_mismatch, StateData};
+
+handle_event(Event, StateName, StateData) ->
+	unexpected(event, Event, StateName),
+    {next_state, StateName, StateData}.
+
+
+%% handle_sync_event/4
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_sync_event-4">gen_fsm:handle_sync_event/4</a>
+-spec handle_sync_event(Event :: term(), From :: {pid(), Tag :: term()}, StateName :: atom(), StateData :: term()) -> Result when
+	Result :: {reply, Reply, NextStateName, NewStateData}
+			| {reply, Reply, NextStateName, NewStateData, Timeout}
+			| {reply, Reply, NextStateName, NewStateData, hibernate}
+			| {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, Reply, NewStateData}
+			| {stop, Reason, NewStateData},
+	Reply :: term(),
+	NextStateName :: atom(),
+	NewStateData :: term(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: term().
+%% ====================================================================
+handle_sync_event(stop, _From, _StateName, StateData) ->
+	lager:debug("Stopping youtube_player_fsm normally"),
+    {stop, normal, shutdown_ok, StateData};
+
+handle_sync_event(Event, _From, StateName, StateData) ->
+	unexpected(sync_event, Event, StateName),
+    Reply = ok,
+    {reply, Reply, StateName, StateData}.
+
+
+%% handle_info/3
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_info-3">gen_fsm:handle_info/3</a>
+-spec handle_info(Info :: term(), StateName :: atom(), StateData :: term()) -> Result when
+	Result :: {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, NewStateData},
+	NextStateName :: atom(),
+	NewStateData :: term(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: normal | term().
+%% ====================================================================
+handle_info({'DOWN', _Ref, process, {python_server, _Node}, noproc}, _StateName, StateData) ->
+	lager:warning("init monitor did not find python_server"),
+	{next_state, down, StateData};
+
+handle_info({'DOWN', _Ref, process, {python_server, _Node}, _Reason}, _StateName, StateData) ->
+	lager:warning("python_server down"),
+	{next_state, down, StateData};
+
+handle_info(Info, StateName, StateData) ->
+	unexpected(info, Info, StateName),
+    {next_state, StateName, StateData}.
+
+
+%% terminate/3
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:terminate-3">gen_fsm:terminate/3</a>
+-spec terminate(Reason, StateName :: atom(), StateData :: term()) -> Result :: term() when
+	Reason :: normal
+			| shutdown
+			| {shutdown, term()}
+			| term().
+%% ====================================================================
+terminate(_Reason, _StateName, _StatData) ->
+    ok.
+
+
+%% code_change/4
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:code_change-4">gen_fsm:code_change/4</a>
+-spec code_change(OldVsn, StateName :: atom(), StateData :: term(), Extra :: term()) -> {ok, NextStateName :: atom(), NewStateData :: term()} when
+	OldVsn :: Vsn | {down, Vsn},
+	Vsn :: term().
+%% ====================================================================
+code_change(_OldVsn, StateName, StateData, _Extra) ->
+    {ok, StateName, StateData}.
+
+
+%% ====================================================================
+%% Internal functions
+%% ====================================================================
+
+unexpected(Type, Msg, State) ->
+	lager:warning("~p received unknown ~p ~p while in state ~p~n",
+			  [self(), Type, Msg, State]).
+
+state_message(StateName, Event, Type) ->
+	lager:debug("~p called with event ~p in mode ~p~n",
+			  [StateName, Event, Type]).
+
