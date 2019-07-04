@@ -47,7 +47,13 @@ play_video(Pid, Url) ->
 init([]) ->
 	Python = python_lib:start_python(whereis(?SERVER)),
 	link(Python),	%%if python dies, the server needs to die with it, supervisor restarts both
-	gen_fsm:send_all_state_event(youtube_player_fsm, python_up),
+	case whereis(youtube_player_fsm) == undefined of
+		true ->
+			%% Do nothing, cannot send event to fsm if it does not exist yet
+			ok;
+		false ->
+			gen_fsm:send_all_state_event(youtube_player_fsm, python_up)
+	end,
 	%% TODO: maybe change this inline call to a gen_server:call
     {ok, #state{python_id=Python}}.
 
@@ -77,10 +83,9 @@ handle_call({play, Url}, _From, State=#state{python_id=Python}) ->
 			{reply, {error, StackTrace} , State}
 	end;
 
-handle_call(stop, _From, State=#state{python_id=Python}) ->
-	ok = python_lib:stop_player(Python),
+handle_call(stop, _From, State) ->
 	lager:debug("Stopping python_server normally"),
-	{stop, normal, ok, State};
+	{stop, normal, shutdown_ok, State};
 
 handle_call(Request, _From, State) ->
 	lager:warning("!!! unexpected call received !!!"),
@@ -103,10 +108,6 @@ handle_cast(finished, State) ->
 	lager:info("got cast finished"),
 	%% DO SOMETHING
     {noreply, State};
-
-handle_cast(stop, State) ->
-	lager:debug("Stopping python_server normally"),
-	{stop, normal, State};
 
 handle_cast(Msg, State) ->
 	lager:warning("!!! unexpected cast received !!!"),

@@ -47,7 +47,7 @@ init([]) ->
 	lager:debug("init is called"),
 	Ref = monitor(process, python_server),	
 	%%this line cannot be in down() because the handle_info would call it infinitely
-    {ok, down, #state{python_server_monitor=Ref}}.
+    {ok, idle, #state{python_server_monitor=Ref}}.
 
 
 %% %% down/2

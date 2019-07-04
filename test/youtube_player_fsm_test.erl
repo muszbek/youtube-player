@@ -14,17 +14,27 @@
 %%% SETUP FUNCTIONS %%%
 %%%%%%%%%%%%%%%%%%%%%%%
 
+setup() ->
+	meck:new(python_lib),
+	meck:expect(python_lib, start_python, fun spawn_mock_python/1),
+	meck:expect(python_lib, stop_player, fun kill_mock_python/1),
+	ok.
+
+cleanup(_) ->
+	gen_fsm:sync_send_all_state_event(youtube_player_fsm, stop),
+	gen_server:call(python_server, stop),
+	meck:unload(python_lib).
+
 %%%%%%%%%%%%%%%%%%%%
 %%% ACTUAL TESTS %%%
 %%%%%%%%%%%%%%%%%%%%
 
 fsm_starts_first_test() ->
-	meck:new(python_lib),
-	meck:expect(python_lib, start_python, fun spawn_mock_python/1),
-	meck:expect(python_lib, stop_player, fun kill_mock_python/1),
+	setup(),
 	fsm_before_server(),
 	server_after_fsm(),
-	gen_fsm:sync_send_all_state_event(youtube_player_fsm, stop).
+	cleanup(ok).
+	
 
 fsm_before_server() ->
 	youtube_player_fsm:start_link(),
@@ -32,6 +42,21 @@ fsm_before_server() ->
 
 server_after_fsm() ->
 	python_server:start_link(),
+	?assertEqual(idle, get_state()).
+
+
+server_starts_first_test() ->
+	setup(),
+	server_before_fsm(),
+	fsm_after_server(),
+	cleanup(ok).
+
+
+server_before_fsm() ->
+	python_server:start_link().
+
+fsm_after_server() ->
+	youtube_player_fsm:start_link(),
 	?assertEqual(idle, get_state()).
 
 %%%%%%%%%%%%%%%%%%%%%%%%
