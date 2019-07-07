@@ -68,7 +68,7 @@ down(python_up, StateData) ->
     {next_state, idle, StateData#state{python_server_monitor=Ref}};
 
 down(Event, StateData) ->
-	state_message(down, Event, async),
+	unexpected(event, Event, down),
     {next_state, down, StateData}.
 
 %% down/3
@@ -90,7 +90,7 @@ down(Event, StateData) ->
 	Reason :: normal | term().
 %% ====================================================================
 down(Event, _From, StateData) ->
-	state_message(down, Event, sync),
+	unexpected(sync_event, Event, down),
     Reply = ok,
     {reply, Reply, down, StateData}.
 
@@ -110,7 +110,7 @@ down(Event, _From, StateData) ->
 %% %% ====================================================================
 % @todo implement actual state
 idle(Event, StateData) ->
-	state_message(idle, Event, async),
+	unexpected(event, Event, idle),
     {next_state, idle, StateData}.
 
 %% idle/3
@@ -136,7 +136,7 @@ idle({starting_video, Url}, _From, StateData) ->
 	{reply, Reply, playing, StateData#state{current_video=Url}};
 
 idle(Event, _From, StateData) ->
-	state_message(idle, Event, sync),
+	unexpected(sync_event, Event, idle),
     Reply = ok,
     {reply, Reply, idle, StateData}.
 
@@ -156,7 +156,7 @@ idle(Event, _From, StateData) ->
 %% %% ====================================================================
 % @todo implement actual state
 playing(Event, StateData) ->
-	state_message(playing, Event, async),
+	unexpected(event, Event, playing),
     {next_state, playing, StateData}.
 
 %% playing/3
@@ -181,8 +181,14 @@ playing({finishing_video, Url}, _From, StateData=#state{current_video=Url}) ->
 	Reply = ok,
     {reply, Reply, idle, StateData#state{current_video= << >>}};
 
+playing({starting_video, Url}, _From, StateData) ->
+	%% TODO: more explicit implementation of interrupting videos
+	lager:warning("Unexpected play video request, current one is still not finished!", []),
+	Reply = ok,
+	{reply, Reply, playing, StateData#state{current_video=Url}};
+
 playing(Event, _From, StateData) ->
-	state_message(playing, Event, sync),
+	unexpected(sync_event, Event, playing),
     Reply = ok,
     {reply, Reply, playing, StateData}.
 
@@ -290,8 +296,3 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 unexpected(Type, Msg, State) ->
 	lager:warning("~p received unknown ~p ~p while in state ~p~n",
 			  [self(), Type, Msg, State]).
-
-state_message(StateName, Event, Type) ->
-	lager:debug("~p called with event ~p in mode ~p~n",
-			  [StateName, Event, Type]).
-

@@ -7,6 +7,7 @@
 -compile([{parse_transform, lager_transform}]).
 
 -define(TEST_URL, << "test_url" >>).
+-define(TEST_URL_NEW, << "test_url_new" >>).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% TESTS DESCRIPTIONS %%%
@@ -35,6 +36,7 @@ server_dies_test() ->
 video_playing_test() ->
 	setup(),
 	video_starts(),
+	new_video_request(),
 	video_finishes(),
 	cleanup(ok).
 
@@ -103,10 +105,16 @@ video_starts() ->
 	python_server:play_video(?TEST_URL),
 	?assertEqual(playing, get_state()).
 
+new_video_request() ->
+	python_server:play_video(?TEST_URL_NEW),
+	?assertEqual(playing, get_state()),
+	?assertEqual(?TEST_URL_NEW, get_current_video()).
+
 video_finishes() ->
 	gen_server:cast(python_server, finished),
 	timer:sleep(10),
-	?assertEqual(idle, get_state()).
+	?assertEqual(idle, get_state()),
+	?assertEqual(<< >>, get_current_video()).
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% HELPER FUNCTIONS %%%
@@ -128,4 +136,11 @@ get_state() ->
 	[_Header, {data, Data}, _StateData] = Contents,
 	[_, _, _, {"StateName", StateName}] = Data,
 	StateName.
-	
+
+get_current_video() ->
+	Status = sys:get_status(whereis(youtube_player_fsm)),
+	{status, _Pid, _Behav, [_Call, running, _Parent, _, Contents]} = Status,
+	[_Header, _RunData, {data, Data}] = Contents,
+	[{"StateData", State}] = Data,
+	{state, CurrentUrl, _Ref} = State,
+	CurrentUrl.
