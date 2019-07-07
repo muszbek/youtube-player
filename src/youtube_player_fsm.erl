@@ -45,9 +45,8 @@ start_link() ->
 %% ====================================================================
 init([]) ->
 	lager:debug("init is called"),
-	Ref = monitor(process, python_server),	
-	%%this line cannot be in down() because the handle_info would call it infinitely
-    {ok, idle, #state{python_server_monitor=Ref}}.
+	Ref = monitor(process, python_server),
+	{ok, idle, #state{python_server_monitor=Ref}}.
 
 
 %% %% down/2
@@ -64,9 +63,13 @@ init([]) ->
 %% 	Reason :: term().
 %% %% ====================================================================
 % @todo implement actual state
+down(python_up, StateData) ->
+	Ref = monitor(process, python_server),
+    {next_state, idle, StateData#state{python_server_monitor=Ref}};
+
 down(Event, StateData) ->
 	state_message(down, Event, async),
-    {next_state, idle, StateData}.
+    {next_state, down, StateData}.
 
 %% down/3
 %% ====================================================================
@@ -189,15 +192,6 @@ playing(Event, _From, StateData) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: term().
 %% ====================================================================
-handle_event(python_up, down, StateData) ->
-	lager:debug("python_up event"),
-	Ref = monitor(process, python_server),
-    {next_state, idle, StateData#state{python_server_monitor=Ref}};
-
-handle_event(python_up, StateName, StateData) ->
-	unexpected(event, python_up, StateName),
-	{stop, fsm_state_mismatch, StateData};
-
 handle_event(Event, StateName, StateData) ->
 	unexpected(event, Event, StateName),
     {next_state, StateName, StateData}.

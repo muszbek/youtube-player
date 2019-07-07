@@ -52,7 +52,7 @@ init([]) ->
 			%% Do nothing, cannot send event to fsm if it does not exist yet
 			ok;
 		false ->
-			gen_fsm:send_all_state_event(youtube_player_fsm, python_up)
+			gen_fsm:send_event(youtube_player_fsm, python_up)
 	end,
 	%% TODO: maybe change this inline call to a gen_server:call
     {ok, #state{python_id=Python}}.
