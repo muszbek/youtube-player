@@ -26,7 +26,7 @@ start_link() ->
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
--record(state, {current_video="",
+-record(state, {current_video,
 				python_server_monitor}).
 
 %% init/1
@@ -131,6 +131,10 @@ idle(Event, StateData) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: normal | term().
 %% ====================================================================
+idle({starting_video, Url}, _From, StateData) ->
+	Reply = ok,
+	{reply, Reply, playing, StateData#state{current_video=Url}};
+
 idle(Event, _From, StateData) ->
 	state_message(idle, Event, sync),
     Reply = ok,
@@ -173,6 +177,10 @@ playing(Event, StateData) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: normal | term().
 %% ====================================================================
+playing({finishing_video, Url}, _From, StateData=#state{current_video=Url}) ->
+	Reply = ok,
+    {reply, Reply, idle, StateData#state{current_video= << >>}};
+
 playing(Event, _From, StateData) ->
 	state_message(playing, Event, sync),
     Reply = ok,

@@ -32,17 +32,11 @@ server_dies_test() ->
 	server_revives(),
 	cleanup(ok).
 
-video_starts_playing_test() ->
+video_playing_test() ->
 	setup(),
-	youtube_player_fsm:start_link(),
-	python_server:start_link(),
-	python_server:play_video(?TEST_URL),
-	?assertEqual(playing, get_state()),
+	video_starts(),
+	video_finishes(),
 	cleanup(ok).
-
-%% video_finishes_playing_test() ->
-%% 	setup(),
-%% 	cleanup(ok).
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% SETUP FUNCTIONS %%%
@@ -100,6 +94,18 @@ server_down() ->
 
 server_revives() ->
 	python_server:start_link(),
+	?assertEqual(idle, get_state()).
+
+%% video_playing_test
+video_starts() ->
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	python_server:play_video(?TEST_URL),
+	?assertEqual(playing, get_state()).
+
+video_finishes() ->
+	gen_server:cast(python_server, finished),
+	timer:sleep(10),
 	?assertEqual(idle, get_state()).
 
 %%%%%%%%%%%%%%%%%%%%%%%%

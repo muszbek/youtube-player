@@ -78,6 +78,7 @@ init([]) ->
 handle_call({play, Url}, _From, State=#state{python_id=Python}) ->
 	try python_lib:play_video(Python, Url) of
 		Reply -> 
+			gen_fsm:sync_send_event(youtube_player_fsm, {starting_video, Url}),
 			{reply, Reply, State#state{last_played=Url}}
 	catch error:{python, _Class, _Argument, StackTrace} ->
 			{reply, {error, StackTrace} , State}
@@ -104,15 +105,15 @@ handle_call(Request, _From, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
-handle_cast(finished, State) ->
+handle_cast(finished, State=#state{last_played=Url}) ->
 	lager:info("got cast finished"),
-	%% DO SOMETHING
+	gen_fsm:sync_send_event(youtube_player_fsm, {finishing_video, Url}),
     {noreply, State};
 
 handle_cast(Msg, State) ->
+	%% wrong message
 	lager:warning("!!! unexpected cast received !!!"),
 	lager:warning("~p", [Msg]),
-	%% wrong message
     {noreply, State}.
 
 
