@@ -9,36 +9,31 @@
 -define(TEST_URL, << "test_url" >>).
 -define(TEST_URL_NEW, << "test_url_new" >>).
 
+-define(setup(F), {foreach, fun setup/0, fun cleanup/1, F}).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% TESTS DESCRIPTIONS %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% fixtures and test generators do not work, they do not execute linearly
+fsm_starts_first_test_() ->
+	{"The fsm waits in down state until the python server is up at startup.",
+	 ?setup([fun fsm_before_server/1,
+			 fun server_after_fsm/1])}.
 
-fsm_starts_first_test() ->
-	setup(),
-	fsm_before_server(),
-	server_after_fsm(),
-	cleanup(ok).
+server_starts_first_test_() ->
+	{"The fsm starts up at idle state if the server is already up.",
+	 ?setup([fun fsm_after_server/1])}.
 
-server_starts_first_test() ->
-	setup(),
-	server_before_fsm(),
-	fsm_after_server(),
-	cleanup(ok).
+server_dies_test_() ->
+	{"The fsm goes to down state if server dies, and comes back to idle when server revives.",
+	 ?setup([fun server_down/1,
+			 fun server_revives/1])}.
 
-server_dies_test() ->
-	setup(),
-	server_down(),
-	server_revives(),
-	cleanup(ok).
-
-video_playing_test() ->
-	setup(),
-	video_starts(),
-	new_video_request(),
-	video_finishes(),
-	cleanup(ok).
+video_playing_test_() ->
+	{"The fsm is in playing state when the server is playing. Url of current video matches.",
+	 ?setup([fun video_starts/1,
+			 fun new_video_request/1,
+			 fun video_finishes/1])}.
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% SETUP FUNCTIONS %%%
@@ -69,52 +64,63 @@ cleanup(_) ->
 %%%%%%%%%%%%%%%%%%%%
 
 %% fsm_starts_first_test
-fsm_before_server() ->
+fsm_before_server(_) ->
 	youtube_player_fsm:start_link(),
-	?assertEqual(down, get_state()).
+	?_assertEqual(down, get_state()).
 
-server_after_fsm() ->
+server_after_fsm(_) ->
+	youtube_player_fsm:start_link(),
 	python_server:start_link(),
-	?assertEqual(idle, get_state()).
+	?_assertEqual(idle, get_state()).
 
 
 %% server_starts_first_test
-server_before_fsm() ->
-	python_server:start_link().
-
-fsm_after_server() ->
+fsm_after_server(_) ->
+	python_server:start_link(),
 	youtube_player_fsm:start_link(),
-	?assertEqual(idle, get_state()).
+	?_assertEqual(idle, get_state()).
+
 
 %% server_dies_test
-server_down() ->
+server_down(_) ->
 	youtube_player_fsm:start_link(),
 	python_server:start_link(),
 	gen_server:call(python_server, stop),
 	timer:sleep(10),
-	?assertEqual(down, get_state()).
+	?_assertEqual(down, get_state()).
 
-server_revives() ->
+server_revives(_) ->
+	youtube_player_fsm:start_link(),
 	python_server:start_link(),
-	?assertEqual(idle, get_state()).
+	gen_server:call(python_server, stop),
+	timer:sleep(10),
+	python_server:start_link(),
+	?_assertEqual(idle, get_state()).
+
 
 %% video_playing_test
-video_starts() ->
+video_starts(_) ->
 	youtube_player_fsm:start_link(),
 	python_server:start_link(),
 	python_server:play_video(?TEST_URL),
-	?assertEqual(playing, get_state()).
+	?_assertEqual(playing, get_state()).
 
-new_video_request() ->
+new_video_request(_) ->
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	python_server:play_video(?TEST_URL),
 	python_server:play_video(?TEST_URL_NEW),
-	?assertEqual(playing, get_state()),
-	?assertEqual(?TEST_URL_NEW, get_current_video()).
+	[?_assertEqual(playing, get_state()),
+	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
 
-video_finishes() ->
+video_finishes(_) ->
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	python_server:play_video(?TEST_URL),
 	gen_server:cast(python_server, finished),
 	timer:sleep(10),
-	?assertEqual(idle, get_state()),
-	?assertEqual(<< >>, get_current_video()).
+	[?_assertEqual(idle, get_state()),
+	 ?_assertEqual(<< >>, get_current_video())].
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% HELPER FUNCTIONS %%%
