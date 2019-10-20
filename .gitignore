@@ -22,3 +22,5 @@ rebar3.crashdump
 .project
 .pydevproject
 *.pyc
+
+python/src/Pipfile.lock
