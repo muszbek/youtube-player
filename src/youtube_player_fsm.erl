@@ -49,19 +49,19 @@ init([]) ->
 	{ok, idle, #state{python_server_monitor=Ref}}.
 
 
-%% %% down/2
-%% %% ====================================================================
-%% %% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
-%% -spec down(Event :: timeout | term(), StateData :: term()) -> Result when
-%% 	Result :: {next_state, NextStateName, NewStateData}
-%% 			| {next_state, NextStateName, NewStateData, Timeout}
-%% 			| {next_state, NextStateName, NewStateData, hibernate}
-%% 			| {stop, Reason, NewStateData},
-%% 	NextStateName :: atom(),
-%% 	NewStateData :: term(),
-%% 	Timeout :: non_neg_integer() | infinity,
-%% 	Reason :: term().
-%% %% ====================================================================
+%% down/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
+-spec down(Event :: timeout | term(), StateData :: term()) -> Result when
+	Result :: {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, NewStateData},
+	NextStateName :: atom(),
+	NewStateData :: term(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: term().
+%% ====================================================================
 % @todo implement actual state
 down(python_up, StateData) ->
 	Ref = monitor(process, python_server),
@@ -95,19 +95,19 @@ down(Event, _From, StateData) ->
     {reply, Reply, down, StateData}.
 
 
-%% %% idle/2
-%% %% ====================================================================
-%% %% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
-%% -spec idle(Event :: timeout | term(), StateData :: term()) -> Result when
-%% 	Result :: {next_state, NextStateName, NewStateData}
-%% 			| {next_state, NextStateName, NewStateData, Timeout}
-%% 			| {next_state, NextStateName, NewStateData, hibernate}
-%% 			| {stop, Reason, NewStateData},
-%% 	NextStateName :: atom(),
-%% 	NewStateData :: term(),
-%% 	Timeout :: non_neg_integer() | infinity,
-%% 	Reason :: term().
-%% %% ====================================================================
+%% idle/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
+-spec idle(Event :: timeout | term(), StateData :: term()) -> Result when
+	Result :: {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, NewStateData},
+	NextStateName :: atom(),
+	NewStateData :: term(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: term().
+%% ====================================================================
 % @todo implement actual state
 idle(Event, StateData) ->
 	unexpected(event, Event, idle),
@@ -141,19 +141,19 @@ idle(Event, _From, StateData) ->
     {reply, Reply, idle, StateData}.
 
 
-%% %% playing/2
-%% %% ====================================================================
-%% %% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
-%% -spec playing(Event :: timeout | term(), StateData :: term()) -> Result when
-%% 	Result :: {next_state, NextStateName, NewStateData}
-%% 			| {next_state, NextStateName, NewStateData, Timeout}
-%% 			| {next_state, NextStateName, NewStateData, hibernate}
-%% 			| {stop, Reason, NewStateData},
-%% 	NextStateName :: atom(),
-%% 	NewStateData :: term(),
-%% 	Timeout :: non_neg_integer() | infinity,
-%% 	Reason :: term().
-%% %% ====================================================================
+%% playing/2
+%% ====================================================================
+%% @doc <a href="http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-2">gen_fsm:StateName/2</a>
+-spec playing(Event :: timeout | term(), StateData :: term()) -> Result when
+	Result :: {next_state, NextStateName, NewStateData}
+			| {next_state, NextStateName, NewStateData, Timeout}
+			| {next_state, NextStateName, NewStateData, hibernate}
+			| {stop, Reason, NewStateData},
+	NextStateName :: atom(),
+	NewStateData :: term(),
+	Timeout :: non_neg_integer() | infinity,
+	Reason :: term().
+%% ====================================================================
 % @todo implement actual state
 playing(Event, StateData) ->
 	unexpected(event, Event, playing),

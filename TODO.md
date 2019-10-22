@@ -1,4 +1,5 @@
 - replace deprecated gen_fsm to gen_statem
+- apply edoc
 
 - write the playlist server
 - write the connection server (is it the same?)
