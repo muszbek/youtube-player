@@ -24,3 +24,4 @@ rebar3.crashdump
 *.pyc
 
 python/src/Pipfile.lock
+rebar.lock
