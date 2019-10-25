@@ -7,3 +7,4 @@
 - do I need to log in to pipenv every time I want to run rebar3? let's dockerize instead
 
 - if python server is down but was playing a video, play the video when comes back
+- next video event in fsm be synchronous

@@ -10,7 +10,6 @@
 
 
 -define(SERVER, ?MODULE).
--define(PLAY_TIMEOUT, 10000).
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -20,7 +19,7 @@ start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 play_video(Url) ->
-	gen_server:call(?SERVER, {play, Url}, ?PLAY_TIMEOUT).
+	gen_server:cast(?SERVER, {play, Url}).
 
 
 %% ====================================================================
@@ -73,16 +72,6 @@ init([]) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: term().
 %% ====================================================================
-handle_call({play, Url}, _From, State=#state{python_id=Python}) ->
-	lager:debug("Playing video ~p", [Url]),
-	try python_lib:play_video(Python, Url) of
-		Reply -> 
-			gen_fsm:sync_send_event(youtube_player_fsm, {starting_video, Url}),
-			{reply, Reply, State#state{last_played=Url}}
-	catch error:{python, _Class, _Argument, StackTrace} ->
-			{reply, {error, StackTrace} , State}
-	end;
-
 handle_call(stop, _From, State) ->
 	lager:debug("Stopping python_server normally"),
 	{stop, normal, shutdown_ok, State};
@@ -104,6 +93,12 @@ handle_call(Request, _From, State) ->
 	NewState :: term(),
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
+handle_cast({play, Url}, State=#state{python_id=Python}) ->
+	lager:debug("Playing video ~p", [Url]),
+	ok = python_lib:play_video(Python, Url),
+	gen_fsm:sync_send_event(youtube_player_fsm, {starting_video, Url}),
+	{noreply, State#state{last_played=Url}};
+
 handle_cast(finished, State=#state{last_played=Url}) ->
 	lager:info("got cast finished"),
 	gen_fsm:sync_send_event(youtube_player_fsm, {finishing_video, Url}),
