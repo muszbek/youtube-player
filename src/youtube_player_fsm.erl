@@ -16,11 +16,13 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0]).
+-export([start_link/0, new_video/1]).
 
 start_link() ->
 	gen_fsm:start_link({local, ?SERVER}, ?MODULE, [], []).
 
+new_video(Url) ->
+	gen_fsm:send_event(?SERVER, {new_video, Url}).
 
 
 %% ====================================================================
@@ -44,7 +46,7 @@ start_link() ->
 	Reason :: term().
 %% ====================================================================
 init([]) ->
-	lager:debug("init is called"),
+	lager:debug("FSM started"),
 	Ref = monitor(process, python_server),
 	{ok, idle, #state{python_server_monitor=Ref}}.
 
@@ -91,7 +93,7 @@ down(Event, StateData) ->
 %% ====================================================================
 down(Event, _From, StateData) ->
 	unexpected(sync_event, Event, down),
-    Reply = ok,
+    Reply = {error, {unexpected_sync_event, down, Event}},
     {reply, Reply, down, StateData}.
 
 
@@ -109,6 +111,14 @@ down(Event, _From, StateData) ->
 	Reason :: term().
 %% ====================================================================
 % @todo implement actual state
+idle({new_video, Url}, StateData) ->
+	%% called by playlist_server
+	%% this event is responsible for starting or rejecting a new video
+	%% it does not change state
+	lager:debug("new_video event to fsm while idle, playing video ~p", [Url]),
+	python_server:play_video(Url),
+	{next_state, idle, StateData};
+
 idle(Event, StateData) ->
 	unexpected(event, Event, idle),
     {next_state, idle, StateData}.
@@ -132,12 +142,14 @@ idle(Event, StateData) ->
 	Reason :: normal | term().
 %% ====================================================================
 idle({starting_video, Url}, _From, StateData) ->
+	%% called by python_server
+	%% this event is responsible for changing state
 	Reply = ok,
 	{reply, Reply, playing, StateData#state{current_video=Url}};
 
 idle(Event, _From, StateData) ->
 	unexpected(sync_event, Event, idle),
-    Reply = ok,
+    Reply = {error, {unexpected_sync_event, idle, Event}},
     {reply, Reply, idle, StateData}.
 
 
@@ -155,6 +167,10 @@ idle(Event, _From, StateData) ->
 	Reason :: term().
 %% ====================================================================
 % @todo implement actual state
+playing({new_video, _Url}, StateData) ->
+	lager:debug("new_video event to fsm while playing, doing nothing"),
+    {next_state, playing, StateData};
+
 playing(Event, StateData) ->
 	unexpected(event, Event, playing),
     {next_state, playing, StateData}.
@@ -189,7 +205,7 @@ playing({starting_video, Url}, _From, StateData) ->
 
 playing(Event, _From, StateData) ->
 	unexpected(sync_event, Event, playing),
-    Reply = ok,
+    Reply = {error, {unexpected_sync_event, playing, Event}},
     {reply, Reply, playing, StateData}.
 
 
