@@ -14,16 +14,13 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0, play_video/1, play_video/2]).
+-export([start_link/0, play_video/1]).
 
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 play_video(Url) ->
-	play_video(?SERVER, Url).
-
-play_video(Pid, Url) ->
-	gen_server:call(Pid, {play, Url}, ?PLAY_TIMEOUT).
+	gen_server:call(?SERVER, {play, Url}, ?PLAY_TIMEOUT).
 
 
 %% ====================================================================
@@ -45,6 +42,7 @@ play_video(Pid, Url) ->
 	Timeout :: non_neg_integer() | infinity.
 %% ====================================================================
 init([]) ->
+	lager:debug("Python server started"),
 	Python = python_lib:start_python(whereis(?SERVER)),
 	link(Python),	%%if python dies, the server needs to die with it, supervisor restarts both
 	case whereis(youtube_player_fsm) == undefined of
@@ -76,6 +74,7 @@ init([]) ->
 	Reason :: term().
 %% ====================================================================
 handle_call({play, Url}, _From, State=#state{python_id=Python}) ->
+	lager:debug("Playing video ~p", [Url]),
 	try python_lib:play_video(Python, Url) of
 		Reply -> 
 			gen_fsm:sync_send_event(youtube_player_fsm, {starting_video, Url}),
