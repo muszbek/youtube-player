@@ -91,6 +91,11 @@ down(Event, StateData) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: normal | term().
 %% ====================================================================
+down({new_video, _Url}, _From, StateData) ->
+	lager:debug("new_video event to fsm while down, doing nothing"),
+	Reply = video_refused,
+    {reply, Reply, down, StateData};
+
 down(Event, _From, StateData) ->
 	unexpected(sync_event, Event, down),
     Reply = {error, {unexpected_sync_event, down, Event}},
