@@ -32,7 +32,7 @@ server_dies_test_() ->
 video_playing_test_() ->
 	{"The fsm is in playing state when the server is playing. Url of current video matches.",
 	 ?setup([fun video_starts/1,
-			 fun new_video_request/1,
+			 fun new_video_playing/1,
 			 fun video_finishes/1])}.
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -103,13 +103,16 @@ video_starts(_) ->
 	youtube_player_fsm:start_link(),
 	python_server:start_link(),
 	python_server:play_video(?TEST_URL),
+	timer:sleep(10),
 	?_assertEqual(playing, get_state()).
 
-new_video_request(_) ->
+new_video_playing(_) ->
 	youtube_player_fsm:start_link(),
 	python_server:start_link(),
 	python_server:play_video(?TEST_URL),
+	timer:sleep(10),
 	python_server:play_video(?TEST_URL_NEW),
+	timer:sleep(10),
 	[?_assertEqual(playing, get_state()),
 	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
 
