@@ -35,6 +35,13 @@ video_playing_test_() ->
 			 fun new_video_playing/1,
 			 fun video_finishes/1])}.
 
+video_request_test_() ->
+	{"The fsm does not let another video getting started when one is already playing.",
+	 ?setup([fun video_refused_when_down/1,
+			 fun video_accepted_when_idle/1,
+			 fun video_refused_when_playing/1])}.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% SETUP FUNCTIONS %%%
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -124,6 +131,33 @@ video_finishes(_) ->
 	timer:sleep(10),
 	[?_assertEqual(idle, get_state()),
 	 ?_assertEqual(<< >>, get_current_video())].
+
+
+%% video_request_test
+video_refused_when_down(_) ->
+	youtube_player_fsm:start_link(),
+	IsAccepted = youtube_player_fsm:new_video(?TEST_URL),
+	[?_assertEqual(down, get_state()),
+	 ?_assertEqual(video_refused, IsAccepted)].
+
+video_accepted_when_idle(_) ->
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	IsAccepted = youtube_player_fsm:new_video(?TEST_URL),
+	timer:sleep(10),
+	[?_assertEqual(playing, get_state()),
+	 ?_assertEqual(video_accepted, IsAccepted)].
+
+video_refused_when_playing(_) ->
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	video_accepted = youtube_player_fsm:new_video(?TEST_URL),
+	timer:sleep(10),
+	IsAccepted = youtube_player_fsm:new_video(?TEST_URL_NEW),
+	timer:sleep(10),
+	[?_assertEqual(playing, get_state()),
+	 ?_assertEqual(video_refused, IsAccepted)].
+	
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% HELPER FUNCTIONS %%%
