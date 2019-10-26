@@ -22,7 +22,7 @@ start_link() ->
 	gen_fsm:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 new_video(Url) ->
-	gen_fsm:send_event(?SERVER, {new_video, Url}).
+	gen_fsm:sync_send_event(?SERVER, {new_video, Url}).
 
 
 %% ====================================================================
@@ -111,14 +111,6 @@ down(Event, _From, StateData) ->
 	Reason :: term().
 %% ====================================================================
 % @todo implement actual state
-idle({new_video, Url}, StateData) ->
-	%% called by playlist_server
-	%% this event is responsible for starting or rejecting a new video
-	%% it does not change state
-	lager:debug("new_video event to fsm while idle, playing video ~p", [Url]),
-	python_server:play_video(Url),
-	{next_state, idle, StateData};
-
 idle(Event, StateData) ->
 	unexpected(event, Event, idle),
     {next_state, idle, StateData}.
@@ -141,6 +133,15 @@ idle(Event, StateData) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: normal | term().
 %% ====================================================================
+idle({new_video, Url}, _From, StateData) ->
+	%% called by playlist_server
+	%% this event is responsible for starting or rejecting a new video
+	%% it does not change state
+	lager:debug("new_video event to fsm while idle, playing video ~p", [Url]),
+	python_server:play_video(Url),
+	Reply = video_accepted,
+	{reply, Reply, idle, StateData};
+
 idle({starting_video, Url}, _From, StateData) ->
 	%% called by python_server
 	%% this event is responsible for changing state
@@ -167,10 +168,6 @@ idle(Event, _From, StateData) ->
 	Reason :: term().
 %% ====================================================================
 % @todo implement actual state
-playing({new_video, _Url}, StateData) ->
-	lager:debug("new_video event to fsm while playing, doing nothing"),
-    {next_state, playing, StateData};
-
 playing(Event, StateData) ->
 	unexpected(event, Event, playing),
     {next_state, playing, StateData}.
@@ -193,6 +190,11 @@ playing(Event, StateData) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: normal | term().
 %% ====================================================================
+playing({new_video, _Url}, _From, StateData) ->
+	lager:debug("new_video event to fsm while playing, doing nothing"),
+	Reply = video_refused,
+    {reply, Reply, playing, StateData};
+
 playing({finishing_video, Url}, _From, StateData=#state{current_video=Url}) ->
 	Reply = ok,
     {reply, Reply, idle, StateData#state{current_video= << >>}};
