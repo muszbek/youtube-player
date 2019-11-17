@@ -201,6 +201,7 @@ playing({new_video, _Url}, _From, StateData) ->
     {reply, Reply, playing, StateData};
 
 playing({finishing_video, Url}, _From, StateData=#state{current_video=Url}) ->
+	playlist_server:next_video(),
 	Reply = ok,
     {reply, Reply, idle, StateData#state{current_video= << >>}};
 

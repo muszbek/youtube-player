@@ -4,13 +4,15 @@
 
 -module(playlist_server).
 -behaviour(gen_server).
+-compile([{parse_transform, lager_transform}]).
+
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0, next_video/0]).
+-export([start_link/0, next_video/0, publish_video/1]).
 
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -18,15 +20,18 @@ start_link() ->
 next_video() ->
 	gen_server:cast(?SERVER, next_video).
 
+publish_video(Url) ->
+	gen_server:call(?SERVER, {publish_video, Url}).
+
 
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
--record(state, {playlist=[],
-				current_video}).
-
 -record(video, {url="",
 				publisher}).
+
+-record(state, {playlist=[],
+				current_video=#video{}}).
 
 %% init/1
 %% ====================================================================
@@ -94,14 +99,13 @@ handle_cast(next_video, State=#state{playlist=[]}) ->
 
 handle_cast(next_video, State=#state{playlist=Playlist}) ->
     lager:debug("Call for next video"),
-	[NextVideo | RemainingPlaylist] = Playlist,
-	{Url, _Publisher} = NextVideo,
+	[NextVideo=#video{url=Url} | RemainingPlaylist] = Playlist,
 	
 	case youtube_player_fsm:new_video(Url) of
-		ok ->
-			{noreply, State=#state{playlist=RemainingPlaylist, current_video=NextVideo}};
-		busy ->
-			{noreply, State=#state{playlist=Playlist}}
+		video_accepted ->
+			{noreply, State#state{playlist=RemainingPlaylist, current_video=NextVideo}};
+		video_refused ->
+			{noreply, State#state{playlist=Playlist}}
 	end;
 
 handle_cast(Msg, State) ->
