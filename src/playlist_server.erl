@@ -95,7 +95,7 @@ handle_call(Request, _From, State) ->
 %% ====================================================================
 handle_cast(next_video, State=#state{playlist=[]}) ->
     lager:debug("Call for next video, playlist empty"),
-    {noreply, State};
+    {noreply, State#state{current_video=#video{}}};
 
 handle_cast(next_video, State=#state{playlist=Playlist}) ->
     lager:debug("Call for next video"),
