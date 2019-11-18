@@ -164,8 +164,7 @@ video_refused_when_playing(_) ->
 %%%%%%%%%%%%%%%%%%%%%%%%
 
 spawn_mock_python(_ServerID) ->
-	Pid = spawn(fun() -> timer:sleep(2000) end),
-	Pid.
+	_Pid = spawn(fun() -> timer:sleep(2000) end).
 
 play_mock_python(_Pid, _Url) ->
 	ok.
