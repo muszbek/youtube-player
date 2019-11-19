@@ -75,7 +75,8 @@ start_link_mock_fsm() ->
 new_video_mock_fsm(Url) ->
 	case ets:lookup(mock_fsm_state, current_video) of
 		[] ->
-			spawn(fun() -> mock_play_video(Url) end),
+			Pid = spawn(fun() -> mock_play_video(Url) end),
+			ets:insert(mock_fsm_state, {current_video_pid, Pid}),
 			video_accepted;
 		[_OtherUrl] ->
 			video_refused
@@ -92,6 +93,12 @@ mock_play_video(Url) ->
 	playlist_server:next_video().
 
 mock_kill_fsm() ->
+	case ets:lookup(mock_fsm_state, current_video_pid) of
+		[] ->
+			ok;
+		[{current_video_pid, Pid}] ->
+			exit(Pid, cleanup_mock_video_process)
+	end,
 	ets:delete(mock_fsm_state).
 
 

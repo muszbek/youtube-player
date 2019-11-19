@@ -51,6 +51,9 @@ setup() ->
 	meck:expect(python_lib, start_python, fun spawn_mock_python/1),
 	meck:expect(python_lib, play_video, fun play_mock_python/2),
 	meck:expect(python_lib, stop_player, fun kill_mock_python/1),
+	
+	meck:new(playlist_server),
+	meck:expect(playlist_server, next_video, fun() -> ok end),
 	ok.
 
 cleanup(_) ->
@@ -64,6 +67,7 @@ cleanup(_) ->
 		false -> gen_server:call(python_server, stop)
 	end,
 	
+	meck:unload(playlist_server),
 	meck:unload(python_lib).
 
 %%%%%%%%%%%%%%%%%%%%
