@@ -6,7 +6,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -compile([{parse_transform, lager_transform}]).
 
--define(VIDEO_LENGTH, 10).
+-define(VIDEO_LENGTH, 20).
 -define(TEST_URL, << "test_url" >>).
 -define(TEST_URL_NEW, << "test_url_new" >>).
 
@@ -19,7 +19,13 @@
 playlist_plays_in_order_test_() ->
 	{"The playlist server accummulates videos and forwards them as the fsm is available.",
 	 ?setup([fun first_video_plays/1,
-			 fun second_video_goes_to_list/1])}.
+			 fun first_video_finishes/1,
+			 fun second_video_goes_to_list/1,
+			 fun second_video_plays/1])}.
+
+playlist_persists_on_failure_test_() ->
+	{"The playlist server stays alive and keeps the playlist when the fsm dies.",
+	 ?setup([])}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -45,13 +51,21 @@ cleanup(_) ->
 %%% ACTUAL TESTS %%%
 %%%%%%%%%%%%%%%%%%%%
 
-%% fsm_starts_first_test
+%% playlist_plays_in_order_test
 first_video_plays(_) ->
 	youtube_player_fsm:start_link(),
 	playlist_server:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	State = get_state(),
 	?_assertMatch({state, [], {video, ?TEST_URL, _Publisher}}, State).
+
+first_video_finishes(_) ->
+	youtube_player_fsm:start_link(),
+	playlist_server:start_link(),
+	playlist_server:publish_video(?TEST_URL),
+	timer:sleep(?VIDEO_LENGTH + 10),
+	State = get_state(),
+	?_assertMatch({state, [], {video, [], undefined}}, State).
 
 second_video_goes_to_list(_) ->
 	youtube_player_fsm:start_link(),
@@ -62,6 +76,15 @@ second_video_goes_to_list(_) ->
 	?_assertMatch({state,
 				   [{video, ?TEST_URL_NEW, _PublisherNew}],
 				   {video, ?TEST_URL, _Publisher}}, State).
+
+second_video_plays(_) ->
+	youtube_player_fsm:start_link(),
+	playlist_server:start_link(),
+	playlist_server:publish_video(?TEST_URL),
+	playlist_server:publish_video(?TEST_URL_NEW),
+	timer:sleep(?VIDEO_LENGTH + 30),
+	State = get_state(),
+	?_assertMatch({state, [], {video, ?TEST_URL_NEW, _Publisher}}, State).
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%
