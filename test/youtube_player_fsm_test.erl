@@ -183,6 +183,12 @@ video_finishes_next_video_plays(_) ->
 	timer:sleep(10),
 	[?_assertEqual(playing, get_state()),
 	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
+
+fsm_revives_first_video_replays(_) ->
+	ok.
+
+server_revives_first_video_replays(_) ->
+	ok.
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%

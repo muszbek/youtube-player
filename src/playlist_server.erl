@@ -12,13 +12,16 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0, next_video/0, publish_video/1]).
+-export([start_link/0, next_video/0, replay_video/0, publish_video/1]).
 
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 next_video() ->
 	gen_server:cast(?SERVER, next_video).
+
+replay_video() ->
+	gen_server:call(?SERVER, replay_video).
 
 publish_video(Url) ->
 	gen_server:call(?SERVER, {publish_video, Url}).
@@ -75,6 +78,18 @@ handle_call({publish_video, Url}, From, State=#state{playlist=Playlist}) ->
 	next_video(),
 	Reply = ok,
     {reply, Reply, State#state{playlist=NewPlaylist}};
+
+handle_call(replay_video, _From, State=#state{current_video=_CurrVid=#video{url=""}}) ->
+    lager:debug("Fsm revived, fetching video from playlist (if there is any)."),
+	next_video(),
+	Reply = ok,
+    {reply, Reply, State};
+
+handle_call(replay_video, _From, State=#state{current_video=_CurrVid=#video{url=Url}}) ->
+    lager:debug("Replaying video: ~p", [Url]),
+	youtube_player_fsm:new_video(Url),
+	Reply = ok,
+    {reply, Reply, State};
 
 handle_call(stop, _From, State) ->
 	lager:debug("Stopping playlist_server normally"),

@@ -94,6 +94,10 @@ no_fsm_playlist_stays_alive(_) ->
 	State = get_state(),
 	?_assertMatch({state, [{video, ?TEST_URL, _Publisher}],
 				   {video, [], undefined}}, State).
+
+no_fsm_replay_nothing_happens(_) ->
+	ok.
+	
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%
