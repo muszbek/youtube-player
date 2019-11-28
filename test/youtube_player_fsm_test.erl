@@ -1,5 +1,5 @@
 %% @author tmuszbek
-%% @doc @todo Add description to youtube_player_fsm_test.
+%% @doc Unit tests concerning the interaction between python_server and youtube_player_fsm.
 
 
 -module(youtube_player_fsm_test).
@@ -42,6 +42,10 @@ video_request_test_() ->
 			 fun video_accepted_when_idle/1,
 			 fun video_refused_when_playing/1])}.
 
+video_from_playlist_test_() ->
+	{"The fsm fetches a video from the playlist when it is done playing one.",
+	 ?setup([fun video_finishes_next_video_plays/1])}.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% SETUP FUNCTIONS %%%
@@ -60,7 +64,7 @@ setup() ->
 cleanup(_) ->
 	case whereis(youtube_player_fsm) == undefined of
 		true -> ok;
-		false -> gen_fsm:send_event(youtube_player_fsm, stop)
+		false -> gen_fsm:sync_send_all_state_event(youtube_player_fsm, stop)
 	end,
 	
 	case whereis(python_server) == undefined of
@@ -166,6 +170,19 @@ video_refused_when_playing(_) ->
 	timer:sleep(10),
 	[?_assertEqual(playing, get_state()),
 	 ?_assertEqual(video_refused, IsAccepted)].
+
+
+%% video_from_playlist_test
+video_finishes_next_video_plays(_) ->
+	meck:expect(playlist_server, next_video, fun mock_playlist_next_video/0),
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	python_server:play_video(?TEST_URL),
+	timer:sleep(10),
+	gen_server:cast(python_server, finished),
+	timer:sleep(10),
+	[?_assertEqual(playing, get_state()),
+	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -180,6 +197,11 @@ play_mock_python(_Pid, _Url) ->
 
 kill_mock_python(Pid) ->
 	exit(Pid, normal).
+
+mock_playlist_next_video() ->
+	%% has to be async, otherwise blocks
+	spawn(fun() -> youtube_player_fsm:new_video(?TEST_URL_NEW) end).
+
 
 get_state() ->
 	Status = sys:get_status(whereis(youtube_player_fsm)),
