@@ -1,5 +1,5 @@
 %% @author tmuszbek
-%% @doc @todo Add description to youtube_player_fsm_test.
+%% @doc Unit tests concerning the functionality of the playlist server, with mocked fsm.
 
 
 -module(playlist_server_test).
@@ -82,7 +82,7 @@ second_video_plays(_) ->
 	playlist_server:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	playlist_server:publish_video(?TEST_URL_NEW),
-	timer:sleep(?VIDEO_LENGTH),
+	timer:sleep(?VIDEO_LENGTH + 10),
 	State = get_state(),
 	?_assertMatch({state, [], {video, ?TEST_URL_NEW, _Publisher}}, State).
 
