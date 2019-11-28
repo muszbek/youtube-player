@@ -38,6 +38,7 @@ video_playing_test_() ->
 video_request_test_() ->
 	{"The fsm does not let another video getting started when one is already playing.",
 	 ?setup([fun video_refused_when_down/1,
+			 fun video_refused_when_fsm_down/1,
 			 fun video_accepted_when_idle/1,
 			 fun video_refused_when_playing/1])}.
 
@@ -143,6 +144,10 @@ video_refused_when_down(_) ->
 	IsAccepted = youtube_player_fsm:new_video(?TEST_URL),
 	[?_assertEqual(down, get_state()),
 	 ?_assertEqual(video_refused, IsAccepted)].
+
+video_refused_when_fsm_down(_) ->
+	IsAccepted = youtube_player_fsm:new_video(?TEST_URL),
+	[?_assertEqual(video_refused, IsAccepted)].
 
 video_accepted_when_idle(_) ->
 	youtube_player_fsm:start_link(),
