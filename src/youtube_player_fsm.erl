@@ -22,7 +22,12 @@ start_link() ->
 	gen_fsm:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 new_video(Url) ->
-	gen_fsm:sync_send_event(?SERVER, {new_video, Url}).
+	case is_server_alive() of
+		true ->
+			gen_fsm:sync_send_event(?SERVER, {new_video, Url});
+		false ->
+			video_refused
+	end.
 
 
 %% ====================================================================
@@ -317,6 +322,14 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
+is_server_alive() ->
+	case whereis(?SERVER) of
+		undefined ->
+			false;
+		_Pid ->
+			is_process_alive(whereis(?SERVER))
+	end.
+	
 unexpected(Type, Msg, State) ->
 	lager:warning("~p received unknown ~p ~p while in state ~p~n",
 			  [self(), Type, Msg, State]).

@@ -25,7 +25,7 @@ playlist_plays_in_order_test_() ->
 
 playlist_persists_on_failure_test_() ->
 	{"The playlist server stays alive and keeps the playlist when the fsm dies.",
-	 ?setup([])}.
+	 ?setup([fun no_fsm_playlist_stays_alive/1])}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -82,9 +82,18 @@ second_video_plays(_) ->
 	playlist_server:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	playlist_server:publish_video(?TEST_URL_NEW),
-	timer:sleep(?VIDEO_LENGTH + 30),
+	timer:sleep(?VIDEO_LENGTH),
 	State = get_state(),
 	?_assertMatch({state, [], {video, ?TEST_URL_NEW, _Publisher}}, State).
+
+
+%% playlist_persists_on_failure_test
+no_fsm_playlist_stays_alive(_) ->
+	playlist_server:start_link(),
+	playlist_server:publish_video(?TEST_URL),
+	State = get_state(),
+	?_assertMatch({state, [{video, ?TEST_URL, _Publisher}],
+				   {video, [], undefined}}, State).
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,7 +104,24 @@ start_link_mock_fsm() ->
 	_Tid = ets:new(mock_fsm_state, [named_table, public]),
 	ok.
 
+
 new_video_mock_fsm(Url) ->
+	case mock_is_server_alive() of
+		true ->
+			mock_new_video_event(Url);
+		false ->
+			video_refused
+	end.
+
+mock_is_server_alive() ->
+	case ets:info(mock_fsm_state) of
+		undefined ->
+			false;
+		_Info ->
+			true
+	end.
+
+mock_new_video_event(Url) ->
 	case ets:lookup(mock_fsm_state, current_video) of
 		[] ->
 			Pid = spawn(fun() -> mock_play_video(Url) end),
@@ -104,6 +130,7 @@ new_video_mock_fsm(Url) ->
 		[_OtherUrl] ->
 			video_refused
 	end.
+
 
 mock_play_video(Url) ->
 	ets:insert(mock_fsm_state, {current_video, Url}),
@@ -115,7 +142,16 @@ mock_play_video(Url) ->
 	end,
 	playlist_server:next_video().
 
+
 mock_kill_fsm() ->
+	case mock_is_server_alive() of
+		true ->
+			mock_kill_fsm_action();
+		false ->
+			ok
+	end.
+
+mock_kill_fsm_action() ->
 	case ets:lookup(mock_fsm_state, current_video_pid) of
 		[] ->
 			ok;
