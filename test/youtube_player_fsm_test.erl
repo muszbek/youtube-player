@@ -44,7 +44,9 @@ video_request_test_() ->
 
 video_from_playlist_test_() ->
 	{"The fsm fetches a video from the playlist when it is done playing one.",
-	 ?setup([fun video_finishes_next_video_plays/1])}.
+	 ?setup([fun video_finishes_next_video_plays/1,
+			 fun fsm_revives_first_video_replays/1,
+			 fun server_revives_first_video_replays/1])}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -58,7 +60,9 @@ setup() ->
 	meck:expect(python_lib, stop_player, fun kill_mock_python/1),
 	
 	meck:new(playlist_server),
+	meck:expect(playlist_server, start_link, fun mock_playlist_start_link/0),
 	meck:expect(playlist_server, next_video, fun() -> ok end),
+	meck:expect(playlist_server, replay_video, fun() -> ok end),
 	ok.
 
 cleanup(_) ->
@@ -185,10 +189,24 @@ video_finishes_next_video_plays(_) ->
 	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
 
 fsm_revives_first_video_replays(_) ->
-	ok.
+	meck:expect(playlist_server, replay_video, fun mock_playlist_next_video/0),
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	timer:sleep(10),
+	mock_playlist_kill(),
+	[?_assertEqual(playing, get_state()),
+	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
 
 server_revives_first_video_replays(_) ->
-	ok.
+	meck:expect(playlist_server, replay_video, fun mock_playlist_next_video/0),
+	playlist_server:start_link(),
+	python_server:start_link(),
+	youtube_player_fsm:start_link(),
+	timer:sleep(10),
+	mock_playlist_kill(),
+	[?_assertEqual(playing, get_state()),
+	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
 	
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,9 +222,17 @@ play_mock_python(_Pid, _Url) ->
 kill_mock_python(Pid) ->
 	exit(Pid, normal).
 
+
+mock_playlist_start_link() ->
+	Pid = spawn(fun() -> timer:sleep(1000) end),
+	register(playlist_server, Pid).
+
 mock_playlist_next_video() ->
 	%% has to be async, otherwise blocks
 	spawn(fun() -> youtube_player_fsm:new_video(?TEST_URL_NEW) end).
+
+mock_playlist_kill() ->
+	exit(whereis(playlist_server), cleanup_mock_playlist_server).
 
 
 get_state() ->
