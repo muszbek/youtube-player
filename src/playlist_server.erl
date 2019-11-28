@@ -76,6 +76,10 @@ handle_call({publish_video, Url}, From, State=#state{playlist=Playlist}) ->
 	Reply = ok,
     {reply, Reply, State#state{playlist=NewPlaylist}};
 
+handle_call(stop, _From, State) ->
+	lager:debug("Stopping playlist_server normally"),
+	{stop, normal, shutdown_ok, State};
+
 handle_call(Request, _From, State) ->
     lager:warning("!!! unexpected call received !!!"),
 	Reply = {error, {unknown_request, Request}},
