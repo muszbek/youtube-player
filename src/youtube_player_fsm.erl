@@ -53,6 +53,7 @@ new_video(Url) ->
 init([]) ->
 	lager:debug("FSM started"),
 	Ref = monitor(process, python_server),
+	startup_get_video(),
 	{ok, idle, #state{python_server_monitor=Ref}}.
 
 
@@ -72,6 +73,7 @@ init([]) ->
 % @todo implement actual state
 down(python_up, StateData) ->
 	Ref = monitor(process, python_server),
+	startup_get_video(),
     {next_state, idle, StateData#state{python_server_monitor=Ref}};
 
 down(Event, StateData) ->
@@ -323,11 +325,22 @@ code_change(_OldVsn, StateName, StateData, _Extra) ->
 %% ====================================================================
 
 is_server_alive() ->
-	case whereis(?SERVER) of
+	is_server_alive(?SERVER).
+
+is_server_alive(ServerName) ->
+	case whereis(ServerName) of
 		undefined ->
 			false;
 		_Pid ->
-			is_process_alive(whereis(?SERVER))
+			is_process_alive(whereis(ServerName))
+	end.
+
+startup_get_video() ->
+	case is_server_alive(playlist_server) of
+		true ->
+			playlist_server:replay_video();
+		false ->
+			ok	%% no playlist_server, no video to play
 	end.
 	
 unexpected(Type, Msg, State) ->
