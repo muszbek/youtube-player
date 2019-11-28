@@ -25,7 +25,10 @@ playlist_plays_in_order_test_() ->
 
 playlist_persists_on_failure_test_() ->
 	{"The playlist server stays alive and keeps the playlist when the fsm dies.",
-	 ?setup([fun no_fsm_playlist_stays_alive/1])}.
+	 ?setup([fun no_fsm_playlist_stays_alive/1,
+			 fun fsm_revives_empty_playlist_nothing_happens/1,
+			 fun fsm_revives_current_video_replays/1,
+			 fun fsm_revives_no_current_video_playlist_plays/1])}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -53,23 +56,23 @@ cleanup(_) ->
 
 %% playlist_plays_in_order_test
 first_video_plays(_) ->
-	youtube_player_fsm:start_link(),
 	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	State = get_state(),
 	?_assertMatch({state, [], {video, ?TEST_URL, _Publisher}}, State).
 
 first_video_finishes(_) ->
-	youtube_player_fsm:start_link(),
 	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	timer:sleep(?VIDEO_LENGTH + 10),
 	State = get_state(),
 	?_assertMatch({state, [], {video, [], undefined}}, State).
 
 second_video_goes_to_list(_) ->
-	youtube_player_fsm:start_link(),
 	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	playlist_server:publish_video(?TEST_URL_NEW),
 	State = get_state(),
@@ -78,8 +81,8 @@ second_video_goes_to_list(_) ->
 				   {video, ?TEST_URL, _Publisher}}, State).
 
 second_video_plays(_) ->
-	youtube_player_fsm:start_link(),
 	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	playlist_server:publish_video(?TEST_URL_NEW),
 	timer:sleep(?VIDEO_LENGTH + 10),
@@ -95,10 +98,28 @@ no_fsm_playlist_stays_alive(_) ->
 	?_assertMatch({state, [{video, ?TEST_URL, _Publisher}],
 				   {video, [], undefined}}, State).
 
-no_fsm_replay_nothing_happens(_) ->
-	ok.
-	
-	
+fsm_revives_empty_playlist_nothing_happens(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	State = get_state(),
+	?_assertMatch({state, [], {video, [], undefined}}, State).
+
+fsm_revives_current_video_replays(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL),
+	mock_kill_fsm(),
+	youtube_player_fsm:start_link(),
+	State = get_state(),
+	?_assertMatch({state, [], {video, ?TEST_URL, _Publisher}}, State).
+
+fsm_revives_no_current_video_playlist_plays(_) ->
+	playlist_server:start_link(),
+	playlist_server:publish_video(?TEST_URL),
+	youtube_player_fsm:start_link(),
+	State = get_state(),
+	?_assertMatch({state, [], {video, ?TEST_URL, _Publisher}}, State).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% HELPER FUNCTIONS %%%
@@ -106,6 +127,7 @@ no_fsm_replay_nothing_happens(_) ->
 
 start_link_mock_fsm() ->
 	_Tid = ets:new(mock_fsm_state, [named_table, public]),
+	playlist_server:replay_video(),
 	ok.
 
 
