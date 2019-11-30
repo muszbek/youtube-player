@@ -12,7 +12,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0, next_video/0, replay_video/0, publish_video/1]).
+-export([start_link/0, next_video/0, replay_video/0, publish_video/1, publish_video/2]).
 
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -24,7 +24,10 @@ replay_video() ->
 	gen_server:call(?SERVER, replay_video).
 
 publish_video(Url) ->
-	gen_server:call(?SERVER, {publish_video, Url}).
+	gen_server:call(?SERVER, {publish_video, Url, self()}).
+
+publish_video(Url, Id) ->
+	gen_server:call(?SERVER, {publish_video, Url, Id}).
 
 
 %% ====================================================================
@@ -70,9 +73,9 @@ init([]) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: term().
 %% ====================================================================
-handle_call({publish_video, Url}, From, State=#state{playlist=Playlist}) ->
+handle_call({publish_video, Url, Id}, _From, State=#state{playlist=Playlist}) ->
     lager:debug("Video published to playlist: ~p", [Url]),
-	Video = #video{url=Url, publisher=From},
+	Video = #video{url=Url, publisher=Id},
 	NewPlaylist = Playlist ++ [Video],	%% new video goes to back of playlist
 
 	next_video(),

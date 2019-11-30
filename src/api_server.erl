@@ -38,7 +38,7 @@ start_link() ->
 %% ====================================================================
 init([]) ->
 	lager:debug("API server started"),
-	start_endpoint(),
+	start_endpoints(),
     {ok, #state{}}.
 
 
@@ -123,11 +123,26 @@ code_change(OldVsn, State, Extra) ->
 %% Internal functions
 %% ====================================================================
 
-start_endpoint() ->
+start_endpoints() ->
 	rooster:start(#{port => ?ENDPOINT_PORT},
-				  #{routes => [hello()],
+				  #{routes => exports(),
 					middleware => []}).
 
-hello() ->
-	{'GET', "/hello", fun(_) -> {200, #{message => <<"hello world">>}} end}.
+exports() ->
+	[{"/playlist", [],
+	  [{'GET', "/hello", fun hello/0},
+	   {'POST', fun post_video/1}]
+	 }].
 
+hello() ->
+	{200, #{message => <<"hello world">>}}.
+
+post_video(#{body := Body}) ->
+	lager:debug("Video posted on REST API: ~p", [Body]),
+	Id = maps:get(id, Body),
+	Video = maps:get(url, Body),
+	playlist_server:publish_video(Video, Id),
+	{201, Body}.
+
+%% test:
+%% curl -d '{"url":"https://www.youtube.com/watch?v=nNPnQJUuAyc", "id":"muszitest"}' -X POST http://localhost:8081/playlist
