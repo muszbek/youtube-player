@@ -58,7 +58,16 @@ init([]) ->
 					 modules => [playlist_server]
 					 },
 	
-    {ok, {{one_for_one, 5, 60}, [PlayerFSM, PythonServer, PlaylistServer]}}.
+	ApiServer = #{
+					 id => api_server,
+					 start => {api_server, start_link, []},
+					 restart => permanent,
+					 shutdown => 2000,
+					 type => worker,
+					 modules => [api_server]
+					 },
+	
+    {ok, {{one_for_one, 5, 60}, [PlayerFSM, PythonServer, PlaylistServer, ApiServer]}}.
 
 %%====================================================================
 %% Internal functions
