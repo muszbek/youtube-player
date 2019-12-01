@@ -3,7 +3,7 @@ youtube_player
 
 An OTP application
 
-Very early stage, pushed here for backup reasons
+It runs the back-end of the youtube playlist with VLC player.
 
 Build
 -----

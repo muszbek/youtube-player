@@ -2,6 +2,7 @@ youtube_player
 =====
 
 This is a Django project to run the front-end of the application.
+
 Uses python 3.7
 
 Build
