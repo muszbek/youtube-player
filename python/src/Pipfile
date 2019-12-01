@@ -9,7 +9,6 @@ verify_ssl = true
 pafy = "*"
 youtube-dl = "*"
 python-vlc = "*"
-Django = "*"
 
 [requires]
 python_version = "3.7"
