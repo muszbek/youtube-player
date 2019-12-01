@@ -8,8 +8,8 @@ verify_ssl = true
 [packages]
 pafy = "*"
 youtube-dl = "*"
-paho-mqtt = "*"
 python-vlc = "*"
+Django = "*"
 
 [requires]
 python_version = "3.7"

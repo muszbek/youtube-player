@@ -9,4 +9,4 @@ Build
 -----
 
     $ rebar3 compile
-    $ pip install pafy youtube-dl python-vlc
+    $ pip install pafy youtube-dl python-vlc Django
