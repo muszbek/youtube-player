@@ -135,7 +135,7 @@ exports() ->
 	 }].
 
 hello() ->
-	{200, #{message => <<"hello world">>}}.
+	{200, #{message => <<"playlist_server_present">>}}.
 
 post_video(#{body := Body}) ->
 	lager:debug("Video posted on REST API: ~p", [Body]),

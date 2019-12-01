@@ -9,8 +9,8 @@ Elements:
 - Youtube player fsm (down, idle, playing)
 - Youtube player python impl
 - playlist server - stores the queue, serves the player fsm
-- socket server - accepts connections, forwards video requests to playlist server
-- socket client - many, sends url to socket server (GUI?)
+- REST server - accepts requests, forwards video requests to playlist server
+- REST front-end (django? android app?)
 
 FSM:
 initial state down
