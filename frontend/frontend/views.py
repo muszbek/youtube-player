@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 import requests
 
 # Create your views here.
@@ -17,11 +19,20 @@ def send_url(request):
     if(request.GET.get('send_url_button')):
         print("lol callback received")
         
-        payload = {"url":"https://www.youtube.com/watch?v=nNPnQJUuAyc", "id":"tamas_django"}
-        response = requests.post(SERVER_URL, json=payload)
+        sentUrl = request.GET.get('url_input_field')
         
-        print(response.text)
-        print(response.status_code, response.reason)
+        val = URLValidator()
+        try:
+            val(sentUrl)
+            
+            payload = {"url": sentUrl, "id": "tamas_django"}
+            response = requests.post(SERVER_URL, json=payload)
+            
+            print(response.text)
+            print(response.status_code, response.reason)
+            
+        except ValidationError as e:
+            print(e)
         
     return HttpResponseRedirect("../")
     
