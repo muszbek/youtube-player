@@ -20,7 +20,9 @@
 					a.createOffer(c=>a.setLocalDescription(c,b,b),b);
 					a.onicecandidate=c=>{try{c.candidate.candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/g).forEach(r)}catch(e){}}})
 				
-				findIP.then(ip => console.log('your ip: ', ip)).catch(e => console.error(e))
+				findIP.then(function(ip){console.log('your ip: ', ip);
+										 document.getElementById("self_id").value = ip;
+										}).catch(e => console.error(e))
 			}
 		</script>
 	</head>
@@ -37,6 +39,7 @@
 		
 		<div class="url_input">
 			<form action="send_url/" method="GET">
+				<input name="self_id" id="self_id" type="hidden" value="*unknown*" /><br/>
 				<input name="url_input_field" type="text" placeholder="Insert youtube url" /><br/>
 				<input name="send_url_button" type="submit" value="Send To Playlist" />
 			</form>

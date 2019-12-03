@@ -17,15 +17,17 @@ def index(request):
 
 def send_url(request):
     if(request.GET.get('send_url_button')):
-        print("lol callback received")
         
         sentUrl = request.GET.get('url_input_field')
+        senderID = request.GET.get('self_id')
+        print(sentUrl)
+        print(senderID)
         
         val = URLValidator()
         try:
             val(sentUrl)
             
-            payload = {"url": sentUrl, "id": "tamas_django"}
+            payload = {"url": sentUrl, "id": senderID}
             response = requests.post(SERVER_URL, json=payload)
             
             print(response.text)
