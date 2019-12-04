@@ -33,7 +33,7 @@ new_video(Url) ->
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
--record(state, {current_video,
+-record(state, {current_video = << >>,
 				python_server_monitor}).
 
 %% init/1
@@ -159,6 +159,13 @@ idle({starting_video, Url}, _From, StateData) ->
 	%% this event is responsible for changing state
 	Reply = ok,
 	{reply, Reply, playing, StateData#state{current_video=Url}};
+
+idle({error_skipping_video, Url}, _From, StateData) ->
+	%% called by python_server
+	lager:debug("Video ~p is unplayable, moving on the next on playlist.", [Url]),
+	playlist_server:next_video(),
+	Reply = ok,
+	{reply, Reply, idle, StateData};
 
 idle(Event, _From, StateData) ->
 	unexpected(sync_event, Event, idle),

@@ -33,12 +33,18 @@ def register_handler(dest):
 
 def play_video(urlBin=b"https://www.youtube.com/watch?v=nNPnQJUuAyc"):
     url = urlBin.decode("utf-8")
-    media = _getMedia(url, vlcInst)
     
-    player.set_media(media)
-    player.play()
+    try:
+        media = _getMedia(url, vlcInst)
+        
+        player.set_media(media)
+        player.play()
+        return Atom(b"ok")
     
-    return Atom(b"ok")
+    except ValueError:
+        print("!!! Unable to play received URL !!!")
+        return Atom(b"wrong_url_error")
+    
     
 def _getMedia(url, vlcInst):
     video = pafy.new(url)

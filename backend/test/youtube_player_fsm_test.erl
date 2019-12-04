@@ -8,6 +8,7 @@
 
 -define(TEST_URL, << "test_url" >>).
 -define(TEST_URL_NEW, << "test_url_new" >>).
+-define(TEST_URL_WRONG, << "test_url_wrong" >>).
 
 -define(setup(F), {foreach, fun setup/0, fun cleanup/1, F}).
 
@@ -47,6 +48,11 @@ video_from_playlist_test_() ->
 	 ?setup([fun video_finishes_next_video_plays/1,
 			 fun fsm_revives_first_video_replays/1,
 			 fun server_revives_first_video_replays/1])}.
+
+wrong_url_test_() ->
+	{"When the python_lib is sent an unplayable url, the playlist moves on.",
+	 ?setup([fun on_wrong_url_server_survives/1,
+			 fun on_wrong_url_playlist_moves_on/1])}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -127,6 +133,8 @@ video_starts(_) ->
 	?_assertEqual(playing, get_state()).
 
 new_video_playing(_) ->
+	%% python server will just start over the new video upon call play_video
+	%% it is not his responsibility to prevent video overlapping
 	youtube_player_fsm:start_link(),
 	python_server:start_link(),
 	python_server:play_video(?TEST_URL),
@@ -207,7 +215,25 @@ server_revives_first_video_replays(_) ->
 	mock_playlist_kill(),
 	[?_assertEqual(playing, get_state()),
 	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
-	
+
+
+%% wrong_url_test
+on_wrong_url_server_survives(_) ->
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	python_server:play_video(?TEST_URL_WRONG),
+	[?_assertEqual(idle, get_state()),
+	 ?_assertEqual(<< >>, get_current_video())].
+
+on_wrong_url_playlist_moves_on(_) ->
+	meck:expect(playlist_server, next_video, fun mock_playlist_next_video/0),
+	youtube_player_fsm:start_link(),
+	python_server:start_link(),
+	python_server:play_video(?TEST_URL_WRONG),
+	timer:sleep(10),
+	[?_assertEqual(playing, get_state()),
+	 ?_assertEqual(?TEST_URL_NEW, get_current_video())].
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% HELPER FUNCTIONS %%%
@@ -216,6 +242,8 @@ server_revives_first_video_replays(_) ->
 spawn_mock_python(_ServerID) ->
 	_Pid = spawn(fun() -> timer:sleep(2000) end).
 
+play_mock_python(_Pid, ?TEST_URL_WRONG) ->
+	wrong_url_error;
 play_mock_python(_Pid, _Url) ->
 	ok.
 

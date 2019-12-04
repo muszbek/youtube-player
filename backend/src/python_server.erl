@@ -95,9 +95,14 @@ handle_call(Request, _From, State) ->
 %% ====================================================================
 handle_cast({play, Url}, State=#state{python_id=Python}) ->
 	lager:debug("Playing video ~p", [Url]),
-	ok = python_lib:play_video(Python, Url),
-	gen_fsm:sync_send_event(youtube_player_fsm, {starting_video, Url}),
-	{noreply, State#state{last_played=Url}};
+	case python_lib:play_video(Python, Url) of
+		ok ->
+			gen_fsm:sync_send_event(youtube_player_fsm, {starting_video, Url}),
+			{noreply, State#state{last_played=Url}};
+		wrong_url_error ->
+			gen_fsm:sync_send_event(youtube_player_fsm, {error_skipping_video, Url}),
+			{noreply, State}
+	end;
 
 handle_cast(finished, State=#state{last_played=Url}) ->
 	lager:info("got cast finished"),
