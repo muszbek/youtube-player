@@ -17,7 +17,6 @@
 
 ## FRONTEND
 - dockerize
-- add connection verification
-- finish functionality
 - add style
 - extract all addresses to config: server, self ip
+- add more sophisticated printing
