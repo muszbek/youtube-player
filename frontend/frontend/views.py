@@ -28,7 +28,8 @@ def index(request):
         else:
             serverAddress = "DOWN"
         
-    except (ConnectionRefusedError, NewConnectionError, MaxRetryError, ConnectionError) as e:
+    except (ConnectionRefusedError, NewConnectionError, MaxRetryError, 
+            ConnectionError, ConnectionResetError) as e:
         print("!!! Back-end server DOWN !!!")
         serverAddress = "DOWN"
     
