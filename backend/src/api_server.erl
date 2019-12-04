@@ -130,11 +130,11 @@ start_endpoints() ->
 
 exports() ->
 	[{"/playlist", [],
-	  [{'GET', "/hello", fun hello/0},
+	  [{'GET', "/hello", fun hello/1},
 	   {'POST', fun post_video/1}]
 	 }].
 
-hello() ->
+hello(_Request) ->
 	{200, #{message => <<"playlist_server_present">>}}.
 
 post_video(#{body := Body}) ->
