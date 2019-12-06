@@ -1,0 +1,5 @@
+{
+	"backend_address": "192.168.0.12",
+	"backend_port": 8081,
+	"frontend_address": "192.168.0.12"
+}

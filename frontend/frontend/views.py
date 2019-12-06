@@ -7,13 +7,12 @@ from urllib3.exceptions import MaxRetryError
 from requests.exceptions import ConnectionError
 import requests
 import json
+import configReader
 
 # Create your views here.
 HTML_PATH = "./frontend/views/main.html"
 
-SERVER_IP = "192.168.0.12"
-SERVER_PORT = 8081
-SERVER_ADDRESS = SERVER_IP + ":" + str(SERVER_PORT)
+SERVER_ADDRESS = configReader.BACKEND_ADDRESS + ":" + str(configReader.BACKEND_PORT)
 SERVER_URL = "http://" + SERVER_ADDRESS + "/playlist"
 
 

@@ -9,7 +9,6 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
--define(ENDPOINT_PORT, 8081).
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -124,7 +123,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 
 start_endpoints() ->
-	rooster:start(#{port => ?ENDPOINT_PORT},
+	rooster:start(#{port => get_port()},
 				  #{routes => exports(),
 					middleware => []}).
 
@@ -143,6 +142,14 @@ post_video(#{body := Body}) ->
 	Video = maps:get(url, Body),
 	playlist_server:publish_video(Video, Id),
 	{201, Body}.
+
+get_port() ->
+	case os:getenv("YP_BACKEND_PORT") of
+		false ->
+			{ok, Port} = application:get_env(youtube_player, rest_port),
+			Port;
+		Port -> Port
+	end.
 
 %% test:
 %% curl -d '{"url":"https://www.youtube.com/watch?v=nNPnQJUuAyc", "id":"muszitest"}' -X POST http://localhost:8081/playlist
