@@ -1,8 +1,4 @@
-'''
-Created on Apr 10, 2019
 
-@author: tmuszbek
-'''
 import pafy
 import vlc
 import time

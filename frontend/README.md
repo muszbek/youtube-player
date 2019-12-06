@@ -8,7 +8,7 @@ Uses python 3.7
 Build
 -----
 
-    $ pip install Django
+    $ pip install requests Django
     
 Run
 ---

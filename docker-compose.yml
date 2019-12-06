@@ -1,0 +1,38 @@
+version: '3.4'
+services:
+
+  youtube-player-backend:
+    container_name: youtube-player-backend
+    image: youtube-player-backend:v0.2
+    build:
+      context: ./backend
+    expose:
+      - "8081"
+    networks:
+      youtube-player_network:
+        ipv4_address: 10.2.0.2
+    restart: on-failure
+    tty: true
+    environment:
+      - PYTHONPATH=/root/ODIN/python-utils/src
+      
+  youtube-player-frontend:
+    container_name: youtube-player-frontend
+    image: youtube-player-frontend:v0.2
+    build:
+      context: ./frontend
+    expose:
+      - "8000"
+    networks:
+      youtube-player_network:
+        ipv4_address: 10.2.0.3
+    restart: on-failure
+    tty: true
+    
+    
+networks:
+  youtube-player_network:
+    ipam:
+      config:
+        - subnet: 10.2.0.0/16
+        

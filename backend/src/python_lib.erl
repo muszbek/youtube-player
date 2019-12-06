@@ -10,8 +10,7 @@
 -export([start_python/1, play_video/2, stop_player/1]).
 
 start_python(ServerID) ->
-	{ok, Path} = application:get_env(youtube_player, python_path),
-	Options = [{python_path, Path}, {python, "python3"}],
+	Options = [{python_path, get_python_path()}, {python, "python3"}],
 	{ok, Pid} = python:start(Options),
 	register_handler(Pid, ServerID),
 	Pid.
@@ -30,3 +29,11 @@ stop_player(Pid) ->
 
 register_handler(PythonID, ServerID) ->
 	python:call(PythonID, 'youtubePlayer.player', register_handler, [ServerID]).
+
+get_python_path() ->
+	case os:getenv("YP_PYTHONPATH") of
+		false ->
+			{ok, Path} = application:get_env(youtube_player, python_path),
+			Path;
+		Path -> Path
+	end.
