@@ -15,10 +15,15 @@ services:
     tty: true
     environment:
       - DISPLAY=unix$DISPLAY
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+      - PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${XDG_RUNTIME_DIR}/pulse:${XDG_RUNTIME_DIR}/pulse
+      - /var/lib/dbus:/var/lib/dbus
+      - /dev/shm:/dev/shm
+      - /usr/bin/dbus-launch:/usr/bin/dbus-launch
     devices:
-      - /dev/snd:/dev/snd
       - /dev/dri:/dev/dri
       
       
