@@ -15,9 +15,11 @@ services:
     tty: true
     environment:
       - DISPLAY=unix$DISPLAY
-    privileged: true
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+    devices:
+      - /dev/snd:/dev/snd
+      - /dev/dri:/dev/dri
       
       
   youtube-player-frontend:
