@@ -13,6 +13,7 @@ services:
         ipv4_address: 10.2.0.2
     restart: on-failure
     tty: true
+    env_file: ./addresses.env
     environment:
       - DISPLAY=unix$DISPLAY
       - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
@@ -39,6 +40,7 @@ services:
         ipv4_address: 10.2.0.3
     restart: on-failure
     tty: true
+    env_file: ./addresses.env
     
     
 networks:
