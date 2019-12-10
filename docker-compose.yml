@@ -14,7 +14,11 @@ services:
     restart: on-failure
     tty: true
     environment:
-      - PYTHONPATH=/root/ODIN/python-utils/src
+      - DISPLAY=unix$DISPLAY
+    privileged: true
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      
       
   youtube-player-frontend:
     container_name: youtube-player-frontend
