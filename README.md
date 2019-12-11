@@ -9,12 +9,12 @@ Connect your phone to the same wifi as the back-end PC, then submit your songs o
 
 *Unfinished*
 
-Build
------
+Native Run
+----
+Back-end and front-end has to be run as two seperate processes, cd into their folders and see their respective README-s.
 
-    $ 
+Docker Run
+----
 
-Run
----
-
-    $ 
+    $ xhost +
+    $ docker-compose up

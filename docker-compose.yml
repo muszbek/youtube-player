@@ -35,9 +35,7 @@ services:
       context: ./frontend
     expose:
       - "8000"
-    networks:
-      youtube-player_network:
-        ipv4_address: 10.2.0.3
+    network_mode: "host"
     restart: on-failure
     tty: true
     env_file: ./addresses.env

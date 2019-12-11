@@ -60,7 +60,8 @@ def send_url(request):
         except ValidationError as e:
             print(e)
             
-        except (ConnectionRefusedError, NewConnectionError, MaxRetryError, ConnectionError) as e:
+        except (ConnectionRefusedError, NewConnectionError, MaxRetryError, 
+                ConnectionError, ConnectionResetError) as e:
             pass    # redirect will expose that the server is down
         
     return HttpResponseRedirect("../")

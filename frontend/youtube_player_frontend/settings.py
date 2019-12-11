@@ -26,7 +26,7 @@ SECRET_KEY = '&+x*2wo_&9-@*8hrwb$6=qow0vn(kt!+y0tbzh+4&)k34g(b%n'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [configReader.FRONTEND_ADDRESS]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', configReader.FRONTEND_ADDRESS]
 
 
 # Application definition
