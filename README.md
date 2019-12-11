@@ -15,6 +15,7 @@ Back-end and front-end has to be run as two seperate processes, cd into their fo
 
 Docker Run
 ----
+In addresses.env set YP_FRONTEND_ADDRESS to the IP address of your host on your local network. Then:
 
     $ xhost +
     $ docker-compose up
