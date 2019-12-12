@@ -26,7 +26,7 @@
 		<div class="address_display">
 			<form action="server_reconnect/" method="GET">
 				<label for="server_address_label">Server address is </label>
-				<label for="ip_label">*unknown_ip*</label><br />
+				<label for="ip_label">{{ backend_address|default:"UNKNOWN" }}</label><br />
 				<input name="reconnect_button" type="submit" value="Reconnect" />
 			</form>
 		</div>

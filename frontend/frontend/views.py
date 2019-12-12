@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.template import loader
 from urllib3.connection import NewConnectionError
 from urllib3.exceptions import MaxRetryError
 from requests.exceptions import ConnectionError
@@ -17,9 +18,7 @@ SERVER_URL = "http://" + SERVER_ADDRESS + "/playlist"
 
 
 def index(request):
-    with open(HTML_PATH, 'r') as htmlFile:
-        htmlText = htmlFile.read()
-        
+    
     try:
         response = requests.get(SERVER_URL + "/hello")
         if json.loads(response.text)["message"] == "playlist_server_present":
@@ -32,9 +31,12 @@ def index(request):
         print("!!! Back-end server DOWN !!!")
         serverAddress = "DOWN"
     
-    htmlText = htmlText.replace("*unknown_ip*", serverAddress, 1)
+    template = loader.get_template('frontend/main.html')
+    context = {
+        'backend_address': serverAddress,
+    }
     
-    return HttpResponse(htmlText)
+    return HttpResponse(template.render(context, request))
 
 
 def server_reconnect(request):
