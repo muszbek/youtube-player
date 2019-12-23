@@ -9,3 +9,4 @@
 - add more sophisticated printing
 - add better alignment on phone
 - add better server (apache?)
+- add favico

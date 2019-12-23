@@ -7,7 +7,9 @@ Users can submit their own youtube URL-s on the webpage, and the playlist plays 
 
 Connect your phone to the same wifi as the back-end PC, then submit your songs on the website. No need to get up from your couch and do it on the PC.
 
-*Unfinished*
+Make sure VLC player is installed on your host machine!
+
+    $ sudo snap install vlc
 
 Native Run
 ----
@@ -15,7 +17,7 @@ Back-end and front-end has to be run as two seperate processes, cd into their fo
 
 Docker Run
 ----
-In addresses.env set YP_FRONTEND_ADDRESS to the IP address of your host on your local network. Then:
+In addresses.env set YP\_FRONTEND\_ADDRESS to the IP address of your host on your local network. Then:
 
     $ xhost +
     $ docker-compose up
