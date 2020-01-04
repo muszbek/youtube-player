@@ -53,13 +53,18 @@ def _getMedia(url, vlcInst):
 
 
 def get_video_details(urlBin):
-    url = urlBin.decode("utf-8")
+    try:
+        url = urlBin.decode("utf-8")
+        
+        video = pafy.new(url)
+        details = json.dumps({"title": video.title,
+                              "duration": video.duration})
+        
+        return details.encode("utf-8")
     
-    video = pafy.new(url)
-    details = json.dumps({"title": video.title,
-                          "duration": video.duration})
-    
-    return details.encode("utf-8")
+    except ValueError:
+        print("!!! Unable to get details of received URL !!!")
+        return Atom(b"wrong_url_error")
 
 
 def stop():
