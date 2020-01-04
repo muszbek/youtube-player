@@ -78,12 +78,16 @@ init([]) ->
 %% ====================================================================
 handle_call({publish_video, Url, Id}, _From, State=#state{playlist=Playlist}) ->
     lager:debug("Video published to playlist: ~p", [Url]),
-	{Title, Duration} = get_video_details(Url),
-	Video = #video{url=Url, publisher=Id, title=Title, duration=Duration},
-	NewPlaylist = Playlist ++ [Video],	%% new video goes to back of playlist
-
-	next_video(),
-	Reply = ok,
+	case get_video_details(Url) of
+		wrong_url_error ->
+			NewPlaylist = Playlist,
+			Reply = wrong_url_error;
+		{Title, Duration} ->
+			Video = #video{url=Url, publisher=Id, title=Title, duration=Duration},
+			NewPlaylist = Playlist ++ [Video],	%% new video goes to back of playlist
+			next_video(),
+			Reply = ok
+	end,
     {reply, Reply, State#state{playlist=NewPlaylist}};
 
 handle_call(replay_video, _From, State=#state{current_video=_CurrVid=#video{url=""}}) ->
@@ -193,7 +197,11 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 
 get_video_details(Url) ->
-	JsonReply = python_server:get_video_details(Url),
-	[{<<"title">>, Title}, {<<"duration">>, Duration}] = jsx:decode(JsonReply),
-	{Title, Duration}.
+	case python_server:get_video_details(Url) of
+		wrong_url_error ->
+			wrong_url_error;
+		JsonReply ->
+			[{<<"title">>, Title}, {<<"duration">>, Duration}] = jsx:decode(JsonReply),
+			{Title, Duration}
+	end.
 
