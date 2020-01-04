@@ -10,6 +10,10 @@
 -define(TEST_URL, << "test_url" >>).
 -define(TEST_URL_NEW, << "test_url_new" >>).
 
+-define(TEST_VIDEO, {video, ?TEST_URL, _Publisher, <<"test_title">>, <<"test_dur">>}).
+-define(TEST_VIDEO_NEW, {video, ?TEST_URL_NEW, _Publisher, <<"test_title_new">>, <<"test_dur_new">>}).
+-define(NO_VIDEO, {video, [], undefined, undefined, undefined}).
+
 -define(setup(F), {foreach, fun setup/0, fun cleanup/1, F}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,6 +43,9 @@ setup() ->
 	meck:new(youtube_player_fsm),
 	meck:expect(youtube_player_fsm, start_link, fun start_link_mock_fsm/0),
 	meck:expect(youtube_player_fsm, new_video, fun new_video_mock_fsm/1),
+	
+	meck:new(python_server),
+	meck:expect(python_server, get_video_details, fun mock_get_video_details/1),
 	ok.
 
 cleanup(_) ->
@@ -48,7 +55,8 @@ cleanup(_) ->
 	end,
 	
 	mock_kill_fsm(),
-	meck:unload(youtube_player_fsm).
+	meck:unload(youtube_player_fsm),
+	meck:unload(python_server).
 
 %%%%%%%%%%%%%%%%%%%%
 %%% ACTUAL TESTS %%%
@@ -60,7 +68,7 @@ first_video_plays(_) ->
 	youtube_player_fsm:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	State = get_state(),
-	?_assertMatch({state, [], {video, ?TEST_URL, _Publisher}}, State).
+	?_assertMatch({state, [], ?TEST_VIDEO}, State).
 
 first_video_finishes(_) ->
 	playlist_server:start_link(),
@@ -68,7 +76,7 @@ first_video_finishes(_) ->
 	playlist_server:publish_video(?TEST_URL),
 	timer:sleep(?VIDEO_LENGTH + 10),
 	State = get_state(),
-	?_assertMatch({state, [], {video, [], undefined}}, State).
+	?_assertMatch({state, [], ?NO_VIDEO}, State).
 
 second_video_goes_to_list(_) ->
 	playlist_server:start_link(),
@@ -77,8 +85,8 @@ second_video_goes_to_list(_) ->
 	playlist_server:publish_video(?TEST_URL_NEW),
 	State = get_state(),
 	?_assertMatch({state,
-				   [{video, ?TEST_URL_NEW, _PublisherNew}],
-				   {video, ?TEST_URL, _Publisher}}, State).
+				   [?TEST_VIDEO_NEW],
+				   ?TEST_VIDEO}, State).
 
 second_video_plays(_) ->
 	playlist_server:start_link(),
@@ -87,7 +95,7 @@ second_video_plays(_) ->
 	playlist_server:publish_video(?TEST_URL_NEW),
 	timer:sleep(?VIDEO_LENGTH + 10),
 	State = get_state(),
-	?_assertMatch({state, [], {video, ?TEST_URL_NEW, _Publisher}}, State).
+	?_assertMatch({state, [], ?TEST_VIDEO_NEW}, State).
 
 
 %% playlist_persists_on_failure_test
@@ -95,14 +103,14 @@ no_fsm_playlist_stays_alive(_) ->
 	playlist_server:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	State = get_state(),
-	?_assertMatch({state, [{video, ?TEST_URL, _Publisher}],
-				   {video, [], undefined}}, State).
+	?_assertMatch({state, [?TEST_VIDEO],
+				   ?NO_VIDEO}, State).
 
 fsm_revives_empty_playlist_nothing_happens(_) ->
 	playlist_server:start_link(),
 	youtube_player_fsm:start_link(),
 	State = get_state(),
-	?_assertMatch({state, [], {video, [], undefined}}, State).
+	?_assertMatch({state, [], ?NO_VIDEO}, State).
 
 fsm_revives_current_video_replays(_) ->
 	playlist_server:start_link(),
@@ -111,14 +119,14 @@ fsm_revives_current_video_replays(_) ->
 	mock_kill_fsm(),
 	youtube_player_fsm:start_link(),
 	State = get_state(),
-	?_assertMatch({state, [], {video, ?TEST_URL, _Publisher}}, State).
+	?_assertMatch({state, [], ?TEST_VIDEO}, State).
 
 fsm_revives_no_current_video_playlist_plays(_) ->
 	playlist_server:start_link(),
 	playlist_server:publish_video(?TEST_URL),
 	youtube_player_fsm:start_link(),
 	State = get_state(),
-	?_assertMatch({state, [], {video, ?TEST_URL, _Publisher}}, State).
+	?_assertMatch({state, [], ?TEST_VIDEO}, State).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -167,6 +175,13 @@ mock_play_video(Url) ->
 		error:badarg -> ok
 	end,
 	playlist_server:next_video().
+
+
+mock_get_video_details(?TEST_URL) ->
+	<<"{\"title\": \"test_title\", \"duration\": \"test_dur\"}">>;
+
+mock_get_video_details(?TEST_URL_NEW) ->
+	<<"{\"title\": \"test_title_new\", \"duration\": \"test_dur_new\"}">>.
 
 
 mock_kill_fsm() ->

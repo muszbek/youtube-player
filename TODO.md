@@ -1,8 +1,7 @@
 - replace deprecated gen_fsm to gen_statem
 - apply edoc
 
-- get playlist from REST
-- videos are more than URL-s (go through python api at the point of publishing)
+- handle errors with URL inspection
 - remove your own songs from playlist
 
 
@@ -12,3 +11,4 @@
 - add better alignment on phone
 - add better server (apache?)
 - add favico
+- get and display playlist

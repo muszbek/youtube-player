@@ -78,7 +78,8 @@ init([]) ->
 %% ====================================================================
 handle_call({publish_video, Url, Id}, _From, State=#state{playlist=Playlist}) ->
     lager:debug("Video published to playlist: ~p", [Url]),
-	Video = #video{url=Url, publisher=Id},
+	{Title, Duration} = get_video_details(Url),
+	Video = #video{url=Url, publisher=Id, title=Title, duration=Duration},
 	NewPlaylist = Playlist ++ [Video],	%% new video goes to back of playlist
 
 	next_video(),
@@ -191,4 +192,8 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions
 %% ====================================================================
 
+get_video_details(Url) ->
+	JsonReply = python_server:get_video_details(Url),
+	[{<<"title">>, Title}, {<<"duration">>, Duration}] = jsx:decode(JsonReply),
+	{Title, Duration}.
 

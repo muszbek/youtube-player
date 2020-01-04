@@ -1,2 +1,4 @@
 -record(video, {url="",
-				publisher}).
+				publisher,
+				title,
+				duration}).
