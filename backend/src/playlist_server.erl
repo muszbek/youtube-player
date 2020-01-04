@@ -6,13 +6,15 @@
 -behaviour(gen_server).
 -compile([{parse_transform, lager_transform}]).
 
+-include("playlist_server.hrl").
+
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0, next_video/0, replay_video/0, publish_video/1, publish_video/2]).
+-export([start_link/0, next_video/0, replay_video/0, publish_video/1, publish_video/2, get_playlist/0]).
 
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -29,12 +31,13 @@ publish_video(Url) ->
 publish_video(Url, Id) ->
 	gen_server:call(?SERVER, {publish_video, Url, Id}).
 
+get_playlist() ->
+	gen_server:call(?SERVER, get_playlist).
+
 
 %% ====================================================================
 %% Behavioural functions
 %% ====================================================================
--record(video, {url="",
-				publisher}).
 
 -record(state, {playlist=[],
 				current_video=#video{}}).
@@ -93,6 +96,11 @@ handle_call(replay_video, _From, State=#state{current_video=_CurrVid=#video{url=
 	youtube_player_fsm:new_video(Url),
 	Reply = ok,
     {reply, Reply, State};
+
+handle_call(get_playlist, _From, State=#state{current_video=CurrVid, playlist=Playlist}) ->
+	lager:debug("Getting playlist"),
+	Reply = {CurrVid, Playlist},
+	{reply, Reply, State};
 
 handle_call(stop, _From, State) ->
 	lager:debug("Stopping playlist_server normally"),

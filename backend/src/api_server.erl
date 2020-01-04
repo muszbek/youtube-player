@@ -6,9 +6,17 @@
 -behaviour(gen_server).
 -compile([{parse_transform, lager_transform}]).
 
+-include("playlist_server.hrl").
+
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE).
+%% record to map macro, cannot define as function because of record_info
+-define(RtoM(Name, Record), lists:foldl(fun({I, E}, Acc) -> Acc#{E => element(I, Record)} end, 
+										#{}, 
+										lists:zip(lists:seq(2, (record_info(size, Name))), 
+												  (record_info(fields, Name))))).
+
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -130,7 +138,8 @@ start_endpoints() ->
 exports() ->
 	[{"/playlist", [],
 	  [{'GET', "/hello", fun hello/1},
-	   {'POST', fun post_video/1}]
+	   {'POST', fun post_video/1},
+	   {'GET', "/list", fun get_playlist/1}]
 	 }].
 
 hello(_Request) ->
@@ -142,6 +151,15 @@ post_video(#{body := Body}) ->
 	Video = maps:get(url, Body),
 	playlist_server:publish_video(Video, Id),
 	{201, Body}.
+
+get_playlist(_Request) ->
+	{CurrVid, Playlist} = playlist_server:get_playlist(),
+	MapCurrVid = ?RtoM(video, CurrVid),
+	MapPlaylist = lists:map(fun(VidRecord) -> ?RtoM(video, VidRecord) end, Playlist),
+	JsonReply = jsx:encode(#{current_video => MapCurrVid,
+							 playlist => MapPlaylist}),
+	lager:debug("Playlist reply: ~p", [JsonReply]),
+	{200, #{message => JsonReply}}.
 
 get_port() ->
 	case os:getenv("YP_BACKEND_PORT") of

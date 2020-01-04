@@ -1,0 +1,2 @@
+-record(video, {url="",
+				publisher}).
