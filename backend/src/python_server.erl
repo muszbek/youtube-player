@@ -13,13 +13,16 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0, play_video/1]).
+-export([start_link/0, play_video/1, get_video_details/1]).
 
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 play_video(Url) ->
 	gen_server:cast(?SERVER, {play, Url}).
+
+get_video_details(Url) ->
+	gen_server:call(?SERVER, {get_video_details, Url}).
 
 
 %% ====================================================================
@@ -72,6 +75,11 @@ init([]) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: term().
 %% ====================================================================
+handle_call({get_video_details, Url}, _From, State=#state{python_id=Python}) ->
+	lager:debug("Asking for video details at url: ~p", [Url]),
+	Reply = python_lib:get_video_details(Python, Url),
+	{reply, Reply, State};
+
 handle_call(stop, _From, State) ->
 	lager:debug("Stopping python_server normally"),
 	{stop, normal, shutdown_ok, State};

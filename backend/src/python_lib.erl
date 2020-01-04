@@ -7,7 +7,7 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_python/1, play_video/2, stop_player/1]).
+-export([start_python/1, play_video/2, get_video_details/2, stop_player/1]).
 
 start_python(ServerID) ->
 	Options = [{python_path, get_python_path()}, {python, "python3"}],
@@ -17,6 +17,9 @@ start_python(ServerID) ->
 
 play_video(Pid, Url) ->
 	python:call(Pid, 'youtubePlayer.player', play_video, [Url]).
+
+get_video_details(Pid, Url) ->
+	python:call(Pid, 'youtubePlayer.player', get_video_details, [Url]).
 
 stop_player(Pid) ->
 	python:call(Pid, 'youtubePlayer.player', stop, []),

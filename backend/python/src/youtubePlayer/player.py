@@ -2,6 +2,7 @@
 import pafy
 import vlc
 import time
+import json
 from erlport.erlterms import Atom
 from erlport import erlang
 
@@ -49,6 +50,16 @@ def _getMedia(url, vlcInst):
     streamUrl = best.url
     
     return vlcInst.media_new(streamUrl)
+
+
+def get_video_details(urlBin):
+    url = urlBin.decode("utf-8")
+    
+    video = pafy.new(url)
+    details = json.dumps({"title": video.title,
+                          "duration": video.duration})
+    
+    return details.encode("utf-8")
 
 
 def stop():
