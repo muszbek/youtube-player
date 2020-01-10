@@ -2,6 +2,7 @@
 - apply edoc
 
 - handle errors with URL inspection
+- unit test of errors with URL inspection
 - remove your own songs from playlist
 
 
