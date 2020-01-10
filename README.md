@@ -21,3 +21,6 @@ In addresses.env set YP\_FRONTEND\_ADDRESS to the IP address of your host on you
 
     $ xhost +
     $ docker-compose up
+
+    
+![infographic-display](https://github.com/muszbek/youtube-player/blob/master/youtube_player_info.jpg)
