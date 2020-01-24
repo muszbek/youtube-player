@@ -1,8 +1,7 @@
 - replace deprecated gen_fsm to gen_statem
 - apply edoc
 
-- handle errors with URL inspection
-- unit test of errors with URL inspection
+- handle errors with URL inspection in frontend
 - remove your own songs from playlist
 
 

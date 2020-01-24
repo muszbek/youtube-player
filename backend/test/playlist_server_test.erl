@@ -9,6 +9,7 @@
 -define(VIDEO_LENGTH, 20).
 -define(TEST_URL, << "test_url" >>).
 -define(TEST_URL_NEW, << "test_url_new" >>).
+-define(TEST_URL_WRONG, << "test_url_wrong" >>).	%% this is an url that youtube does not recognize as video
 
 -define(TEST_VIDEO, {video, ?TEST_URL, _Publisher, <<"test_title">>, <<"test_dur">>}).
 -define(TEST_VIDEO_NEW, {video, ?TEST_URL_NEW, _Publisher, <<"test_title_new">>, <<"test_dur_new">>}).
@@ -33,6 +34,11 @@ playlist_persists_on_failure_test_() ->
 			 fun fsm_revives_empty_playlist_nothing_happens/1,
 			 fun fsm_revives_current_video_replays/1,
 			 fun fsm_revives_no_current_video_playlist_plays/1])}.
+
+playlist_rejects_wrong_urls_test_() ->
+	{"Wrong urls get rejected and do not enter the playlist.",
+	 ?setup([fun erronous_url_does_not_play/1,
+			 fun erronous_url_does_not_enter_playlist/1])}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -129,6 +135,23 @@ fsm_revives_no_current_video_playlist_plays(_) ->
 	?_assertMatch({state, [], ?TEST_VIDEO}, State).
 
 
+%% playlist_rejects_wrong_urls_test
+erronous_url_does_not_play(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL_WRONG),
+	State = get_state(),
+	?_assertMatch({state, [], ?NO_VIDEO}, State).
+
+erronous_url_does_not_enter_playlist(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL),
+	playlist_server:publish_video(?TEST_URL_WRONG),
+	State = get_state(),
+	?_assertMatch({state, [], ?TEST_VIDEO}, State).
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% HELPER FUNCTIONS %%%
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,7 +204,10 @@ mock_get_video_details(?TEST_URL) ->
 	<<"{\"title\": \"test_title\", \"duration\": \"test_dur\"}">>;
 
 mock_get_video_details(?TEST_URL_NEW) ->
-	<<"{\"title\": \"test_title_new\", \"duration\": \"test_dur_new\"}">>.
+	<<"{\"title\": \"test_title_new\", \"duration\": \"test_dur_new\"}">>;
+
+mock_get_video_details(?TEST_URL_WRONG) ->
+	wrong_url_error.
 
 
 mock_kill_fsm() ->
