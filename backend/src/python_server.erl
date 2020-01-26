@@ -6,6 +6,8 @@
 -behaviour(gen_server).
 -compile([{parse_transform, lager_transform}]).
 
+-include("python_server.hrl").
+
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 
@@ -22,7 +24,12 @@ play_video(Url) ->
 	gen_server:cast(?SERVER, {play, Url}).
 
 get_video_details(Url) ->
-	gen_server:call(?SERVER, {get_video_details, Url}).
+	try
+		gen_server:call(?SERVER, {get_video_details, Url}, ?VIDEO_INFO_TIMEOUT)
+	catch
+		exit:{timeout, _} ->
+			timeout
+	end.
 
 
 %% ====================================================================

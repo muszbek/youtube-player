@@ -7,6 +7,7 @@
 -compile([{parse_transform, lager_transform}]).
 
 -include("playlist_server.hrl").
+-include("python_server.hrl").
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -26,10 +27,10 @@ replay_video() ->
 	gen_server:call(?SERVER, replay_video).
 
 publish_video(Url) ->
-	gen_server:call(?SERVER, {publish_video, Url, self()}).
+	publish_video(Url, self()).
 
 publish_video(Url, Id) ->
-	gen_server:call(?SERVER, {publish_video, Url, Id}).
+	gen_server:call(?SERVER, {publish_video, Url, Id}, ?VIDEO_INFO_TIMEOUT).
 
 get_playlist() ->
 	gen_server:call(?SERVER, get_playlist).
@@ -79,9 +80,9 @@ init([]) ->
 handle_call({publish_video, Url, Id}, _From, State=#state{playlist=Playlist}) ->
     lager:debug("Video published to playlist: ~p", [Url]),
 	case get_video_details(Url) of
-		wrong_url_error ->
+		Error when is_atom(Error) ->	%% wrong_url_error or timeout
 			NewPlaylist = Playlist,
-			Reply = wrong_url_error;
+			Reply = Error;
 		{Title, Duration} ->
 			Video = #video{url=Url, publisher=Id, title=Title, duration=Duration},
 			NewPlaylist = Playlist ++ [Video],	%% new video goes to back of playlist
@@ -200,6 +201,8 @@ get_video_details(Url) ->
 	case python_server:get_video_details(Url) of
 		wrong_url_error ->
 			wrong_url_error;
+		timeout ->
+			timeout;
 		JsonReply ->
 			[{<<"title">>, Title}, {<<"duration">>, Duration}] = jsx:decode(JsonReply),
 			{Title, Duration}

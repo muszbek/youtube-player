@@ -1,0 +1,1 @@
+-define(VIDEO_INFO_TIMEOUT, 10000).
