@@ -156,8 +156,8 @@ get_playlist(_Request) ->
 	{CurrVid, Playlist} = playlist_server:get_playlist(),
 	MapCurrVid = ?RtoM(video, CurrVid),
 	MapPlaylist = lists:map(fun(VidRecord) -> ?RtoM(video, VidRecord) end, Playlist),
-	JsonReply = jsx:encode(#{current_video => MapCurrVid,
-							 playlist => MapPlaylist}),
+	JsonReply = #{current_video => MapCurrVid,
+				  playlist => MapPlaylist},
 	lager:debug("Playlist reply: ~p", [JsonReply]),
 	{200, #{message => JsonReply}}.
 
