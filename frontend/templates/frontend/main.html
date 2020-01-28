@@ -17,6 +17,7 @@
 				
 				findIP.then(function(ip){console.log('your ip: ', ip);
 										 document.getElementById("self_id").value = ip;
+										 document.getElementById("self_id_playlist").value = ip;
 										}).catch(e => console.error(e))
 			}
 		</script>
@@ -44,8 +45,9 @@
 		
 		<div class="playlist_display">
 			<form action="playlist_remove/" method="GET">
+				<input name="self_id_playlist" id="self_id_playlist" type="hidden" value="*unknown*" /><br/>
 				<select name="title_list" multiple>
-					<option value={{ current_video.url|default:"NONE" }}>
+					<option value={{ current_video.url }}>
 						PLAYING: -{{ current_video.duration }}- {{ current_video.title|default:"NONE" }}
 					</option>
 				{% for video in playlist %}
@@ -53,7 +55,7 @@
 						-{{ video.duration }}- {{ video.title }}
 					</option>
     			{% endfor %}
-				</select>
+				</select><br/>
 				<input name="remove_button" type="submit" value="Remove" />
 			</form>
 		</div>
