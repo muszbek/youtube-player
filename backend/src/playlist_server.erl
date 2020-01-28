@@ -91,7 +91,7 @@ handle_call({publish_video, Url, Id}, _From, State=#state{playlist=Playlist}) ->
 	end,
     {reply, Reply, State#state{playlist=NewPlaylist}};
 
-handle_call(replay_video, _From, State=#state{current_video=_CurrVid=#video{url=""}}) ->
+handle_call(replay_video, _From, State=#state{current_video=_CurrVid=#video{url=undefined}}) ->
     lager:debug("Fsm revived, fetching video from playlist (if there is any)."),
 	next_video(),
 	Reply = ok,

@@ -1,4 +1,4 @@
--record(video, {url="",
+-record(video, {url,
 				publisher,
 				title,
 				duration}).
