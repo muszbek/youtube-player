@@ -18,28 +18,21 @@ SERVER_URL = "http://" + SERVER_ADDRESS + "/playlist"
 
 
 def index(request):
+    serverAddress = _getServerAddressText()
     
-    try:
-        response = requests.get(SERVER_URL + "/hello")
-        if json.loads(response.text)["message"] == "playlist_server_present":
-            serverAddress = SERVER_ADDRESS
-        else:
-            serverAddress = "DOWN"
-        
-    except (ConnectionRefusedError, NewConnectionError, MaxRetryError, 
-            ConnectionError, ConnectionResetError) as e:
-        print("!!! Back-end server DOWN !!!")
-        serverAddress = "DOWN"
-    
-    template = loader.get_template('frontend/main.html')
-    context = {
+    serverContext = {
         'backend_address': serverAddress,
     }
+    
+    playlistContext = _createPlaylistContext(_isServerReachable(serverAddress))
+    
+    context = {**serverContext, **playlistContext}
+    template = loader.get_template('frontend/main.html')
     
     return HttpResponse(template.render(context, request))
 
 
-def server_reconnect(request):
+def server_refresh(request):
     return HttpResponseRedirect("../")
         
 
@@ -55,7 +48,7 @@ def send_url(request):
         try:
             val(sentUrl)
             
-            payload = {"url": sentUrl, "id": senderID}
+            payload = {'url': sentUrl, 'id': senderID}
             response = requests.post(SERVER_URL, json=payload)
             print("*** Video sent to playlist ***")
             
@@ -67,4 +60,36 @@ def send_url(request):
             pass    # redirect will expose that the server is down
         
     return HttpResponseRedirect("../")
+
+
+def _getServerAddressText():
+    try:
+        response = requests.get(SERVER_URL + "/hello")
+        if json.loads(response.text)['message'] == "playlist_server_present":
+            return SERVER_ADDRESS
+        else:
+            return "DOWN"
+        
+    except (ConnectionRefusedError, NewConnectionError, MaxRetryError, 
+            ConnectionError, ConnectionResetError) as e:
+        print("!!! Back-end server DOWN !!!")
+        return "DOWN"
+
+def _isServerReachable(serverAddress):
+    return serverAddress != "DOWN"
+
+def _createPlaylistContext(isServerReachable):
+    if isServerReachable:
+        return _getPlaylistContext()
+    else:
+        return {'playlist': []}
+
+def _getPlaylistContext():
+    response = requests.get(SERVER_URL + "/list")
+    body = json.loads(response.text)['message']
+    
+    return {
+        'current_video': body['current_video'],
+        'playlist': body['playlist']
+    }
     

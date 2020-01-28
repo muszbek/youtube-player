@@ -27,10 +27,10 @@
 		</div>
 		
 		<div class="address_display">
-			<form action="server_reconnect/" method="GET">
+			<form action="server_refresh/" method="GET">
 				<label for="server_address_label">Server address is </label>
 				<label for="ip_label">{{ backend_address|default:"UNKNOWN" }}</label><br />
-				<input name="reconnect_button" type="submit" value="Reconnect" />
+				<input name="refresh_button" type="submit" value="Refresh" />
 			</form>
 		</div>
 		
@@ -39,6 +39,22 @@
 				<input name="self_id" id="self_id" type="hidden" value="*unknown*" /><br/>
 				<input name="url_input_field" type="url" placeholder="Insert youtube url" /><br/>
 				<input name="send_url_button" type="submit" value="Send To Playlist" />
+			</form>
+		</div>
+		
+		<div class="playlist_display">
+			<form action="playlist_remove/" method="GET">
+				<select name="title_list" multiple>
+					<option value={{ current_video.url|default:"NONE" }}>
+						PLAYING: -{{ current_video.duration }}- {{ current_video.title|default:"NONE" }}
+					</option>
+				{% for video in playlist %}
+        			<option value={{ video.url }}>
+						-{{ video.duration }}- {{ video.title }}
+					</option>
+    			{% endfor %}
+				</select>
+				<input name="remove_button" type="submit" value="Remove" />
 			</form>
 		</div>
 	</body>
