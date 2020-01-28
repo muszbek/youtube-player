@@ -1,6 +1,11 @@
-FROM python:3.7.4-slim-stretch
+## System image
+FROM python:3.7.4-slim-stretch as system
+LABEL develop=true
 		
 RUN		pip3 install requests Django
+
+## Build image
+FROM system as builder
 		
 COPY	. /root/youtube-player/frontend
 
