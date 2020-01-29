@@ -29,8 +29,8 @@ replay_video() ->
 publish_video(Url) ->
 	publish_video(Url, self()).
 
-publish_video(Url, Id) ->
-	gen_server:call(?SERVER, {publish_video, Url, Id}, ?VIDEO_INFO_TIMEOUT).
+publish_video(Url, Publisher) ->
+	gen_server:call(?SERVER, {publish_video, Url, Publisher}, ?VIDEO_INFO_TIMEOUT).
 
 get_playlist() ->
 	gen_server:call(?SERVER, get_playlist).
@@ -77,14 +77,14 @@ init([]) ->
 	Timeout :: non_neg_integer() | infinity,
 	Reason :: term().
 %% ====================================================================
-handle_call({publish_video, Url, Id}, _From, State=#state{playlist=Playlist}) ->
+handle_call({publish_video, Url, Publisher}, _From, State=#state{playlist=Playlist}) ->
     lager:debug("Video published to playlist: ~p", [Url]),
 	case get_video_details(Url) of
 		Error when is_atom(Error) ->	%% wrong_url_error or timeout
 			NewPlaylist = Playlist,
 			Reply = Error;
 		{Title, Duration} ->
-			Video = #video{url=Url, publisher=Id, title=Title, duration=Duration},
+			Video = #video{url=Url, publisher=Publisher, title=Title, duration=Duration},
 			NewPlaylist = Playlist ++ [Video],	%% new video goes to back of playlist
 			next_video(),
 			Reply = ok

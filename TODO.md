@@ -11,4 +11,3 @@
 - add better alignment on phone
 - add better server (apache?)
 - add favico
-- get and display playlist

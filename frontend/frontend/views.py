@@ -48,7 +48,7 @@ def send_url(request):
         try:
             val(sentUrl)
             
-            payload = {'url': sentUrl, 'id': senderID}
+            payload = {'url': sentUrl, 'publisher': senderID}
             response = requests.post(SERVER_URL, json=payload)
             print("*** Video sent to playlist ***")
             
@@ -70,7 +70,7 @@ def playlist_remove(request):
         if selectedUrl and selectedUrl != "undefined":
             print("Removing from playlist: " + selectedUrl)
             
-            payload = {'url': selectedUrl, 'id': senderID}
+            payload = {'url': selectedUrl, 'publisher': senderID}
             response = requests.post(SERVER_URL + "/remove", json=payload)
         
     return HttpResponseRedirect("../")

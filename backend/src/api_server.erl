@@ -147,9 +147,9 @@ hello(_Request) ->
 
 post_video(#{body := Body}) ->
 	lager:debug("Video posted on REST API: ~p", [Body]),
-	Id = maps:get(id, Body),
+	Publisher = maps:get(publisher, Body),
 	Video = maps:get(url, Body),
-	_IsOk = playlist_server:publish_video(Video, Id),
+	_IsOk = playlist_server:publish_video(Video, Publisher),
 	{201, Body}.
 
 get_playlist(_Request) ->
