@@ -95,6 +95,31 @@ handle_call({publish_video, Url, Publisher}, _From, State=#state{playlist=Playli
 	end,
     {reply, Reply, State#state{playlist=NewPlaylist}};
 
+handle_call({remove_video, Id, Publisher}, _From, 
+			State=#state{current_video=#video{id=Id, publisher=Publisher, url=Url}}) ->
+	lager:debug("Stopping current video ~p", [Url]),
+	{reply, ok, State};
+
+handle_call({remove_video, Id, _Publisher}, _From, 
+			State=#state{current_video=#video{id=Id, publisher=_OtherPublisher, url=Url}}) ->
+	lager:debug("Trying to stop current video ~p, have no right", [Url]),
+	{reply, refused, State};
+
+handle_call({remove_video, Id, Publisher}, _From, State=#state{playlist=Playlist}) ->
+	ToRemove = [Video || Video=#video{id=ElementId} <- Playlist, ElementId == Id],
+	case ToRemove of
+		[] ->
+			lager:debug("Trying to remove a video, but it is not in the playlist"),
+			{reply, refused, State};
+		[Video=#video{id=Id, publisher=Publisher, url=Url}] ->
+			lager:debug("Removing video ~p from playlist", [Url]),
+			NewPlaylist = lists:delete(Video, Playlist),
+			{reply, ok, State#state{playlist=NewPlaylist}};
+		[_Video=#video{id=Id, publisher=_OtherPublisher, url=Url}] ->
+			lager:debug("Trying to remove video ~p from playlist, have no right", [Url]),
+			{reply, refused, State}
+	end;
+
 handle_call(replay_video, _From, State=#state{current_video=_CurrVid=#video{url=undefined}}) ->
     lager:debug("Fsm revived, fetching video from playlist (if there is any)."),
 	next_video(),
