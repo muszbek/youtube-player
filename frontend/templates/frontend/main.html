@@ -47,11 +47,11 @@
 			<form action="playlist_remove/" method="GET">
 				<input name="self_id_playlist" id="self_id_playlist" type="hidden" value="*unknown*" /><br/>
 				<select name="title_list" multiple>
-					<option value={{ current_video.url }}>
+					<option value={{ current_video.id }}>
 						PLAYING: -{{ current_video.duration }}- {{ current_video.title|default:"NONE" }}
 					</option>
 				{% for video in playlist %}
-        			<option value={{ video.url }}>
+        			<option value={{ video.id }}>
 						-{{ video.duration }}- {{ video.title }}
 					</option>
     			{% endfor %}

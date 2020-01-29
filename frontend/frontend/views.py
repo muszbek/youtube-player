@@ -65,12 +65,12 @@ def send_url(request):
 def playlist_remove(request):
     if(request.GET.get('remove_button')):
         senderID = request.GET.get('self_id_playlist')
-        selectedUrl = request.GET.get('title_list')
+        selectedID = request.GET.get('title_list')
         
-        if selectedUrl and selectedUrl != "undefined":
-            print("Removing from playlist: " + selectedUrl)
+        if selectedID and selectedID != "undefined":
+            print("Removing from playlist: " + selectedID)
             
-            payload = {'url': selectedUrl, 'publisher': senderID}
+            payload = {'id': selectedID, 'publisher': senderID}
             response = requests.post(SERVER_URL + "/remove", json=payload)
         
     return HttpResponseRedirect("../")
