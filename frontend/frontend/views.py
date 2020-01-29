@@ -70,7 +70,7 @@ def playlist_remove(request):
         if selectedID and selectedID != "undefined":
             print("Removing from playlist: " + selectedID)
             
-            payload = {'id': selectedID, 'publisher': senderID}
+            payload = {'id': int(selectedID), 'publisher': senderID}
             response = requests.post(SERVER_URL + "/remove", json=payload)
         
     return HttpResponseRedirect("../")

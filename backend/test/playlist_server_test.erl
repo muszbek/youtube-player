@@ -40,6 +40,12 @@ playlist_rejects_wrong_urls_test_() ->
 	 ?setup([fun erronous_url_does_not_play/1,
 			 fun erronous_url_does_not_enter_playlist/1])}.
 
+remove_from_playlist_test_() ->
+	{"Remove video from playlist only when publisher is matching.",
+	 ?setup([fun remove_from_playlist_when_publisher_matching/1,
+			 fun leave_in_playlist_when_publisher_not_matching/1,
+			 fun leave_in_playlist_when_id_not_found/1])}.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% SETUP FUNCTIONS %%%
@@ -150,6 +156,35 @@ erronous_url_does_not_enter_playlist(_) ->
 	playlist_server:publish_video(?TEST_URL_WRONG),
 	State = get_state(),
 	?_assertMatch({state, [], ?TEST_VIDEO}, State).
+
+
+%% remove_from_playlist_test
+remove_from_playlist_when_publisher_matching(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL, self()),
+	playlist_server:publish_video(?TEST_URL_NEW, self()),
+	playlist_server:remove_video(2, self()),
+	State = get_state(),
+	?_assertMatch({state, [], ?TEST_VIDEO}, State).
+
+leave_in_playlist_when_publisher_not_matching(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL, self()),
+	playlist_server:publish_video(?TEST_URL_NEW, not_me),
+	playlist_server:remove_video(2, self()),
+	State = get_state(),
+	?_assertMatch({state, [?TEST_VIDEO_NEW], ?TEST_VIDEO}, State).
+
+leave_in_playlist_when_id_not_found(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL, self()),
+	playlist_server:publish_video(?TEST_URL_NEW, self()),
+	playlist_server:remove_video(3, self()),
+	State = get_state(),
+	?_assertMatch({state, [?TEST_VIDEO_NEW], ?TEST_VIDEO}, State).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%

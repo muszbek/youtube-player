@@ -139,6 +139,7 @@ exports() ->
 	[{"/playlist", [],
 	  [{'GET', "/hello", fun hello/1},
 	   {'POST', fun post_video/1},
+	   {'POST', "/remove", fun remove_video/1},
 	   {'GET', "/list", fun get_playlist/1}]
 	 }].
 
@@ -150,6 +151,13 @@ post_video(#{body := Body}) ->
 	Publisher = maps:get(publisher, Body),
 	Video = maps:get(url, Body),
 	_IsOk = playlist_server:publish_video(Video, Publisher),
+	{201, Body}.
+
+remove_video(#{body := Body}) ->
+	lager:debug("Remove video on REST API: ~p", [Body]),
+	Id = maps:get(id, Body),
+	Publisher = maps:get(publisher, Body),
+	_IsOk = playlist_server:remove_video(Id, Publisher),
 	{201, Body}.
 
 get_playlist(_Request) ->
