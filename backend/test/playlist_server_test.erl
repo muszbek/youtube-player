@@ -11,8 +11,8 @@
 -define(TEST_URL_NEW, << "test_url_new" >>).
 -define(TEST_URL_WRONG, << "test_url_wrong" >>).	%% this is an url that youtube does not recognize as video
 
--define(TEST_VIDEO, {video, ?TEST_URL, _Publisher, <<"test_title">>, <<"test_dur">>, _Id}).
--define(TEST_VIDEO_NEW, {video, ?TEST_URL_NEW, _PublisherNew, <<"test_title_new">>, <<"test_dur_new">>, _IdNew}).
+-define(TEST_VIDEO, {video, ?TEST_URL, _Publisher, <<"test_title">>, <<"test_dur">>, 1}).
+-define(TEST_VIDEO_NEW, {video, ?TEST_URL_NEW, _PublisherNew, <<"test_title_new">>, <<"test_dur_new">>, 2}).
 -define(NO_VIDEO, {video, undefined, undefined, undefined, undefined, undefined}).
 
 -define(setup(F), {foreach, fun setup/0, fun cleanup/1, F}).
@@ -201,10 +201,10 @@ mock_play_video(Url) ->
 
 
 mock_get_video_details(?TEST_URL) ->
-	<<"{\"title\": \"test_title\", \"duration\": \"test_dur\"}">>;
+	{<<"test_title">>, <<"test_dur">>, 1};
 
 mock_get_video_details(?TEST_URL_NEW) ->
-	<<"{\"title\": \"test_title_new\", \"duration\": \"test_dur_new\"}">>;
+	{<<"test_title_new">>, <<"test_dur_new">>, 2};
 
 mock_get_video_details(?TEST_URL_WRONG) ->
 	wrong_url_error.

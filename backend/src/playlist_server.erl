@@ -15,7 +15,8 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0, next_video/0, replay_video/0, publish_video/1, publish_video/2, get_playlist/0]).
+-export([start_link/0, next_video/0, replay_video/0, publish_video/1, publish_video/2, 
+		 remove_video/2, get_playlist/0]).
 
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
@@ -31,6 +32,9 @@ publish_video(Url) ->
 
 publish_video(Url, Publisher) ->
 	gen_server:call(?SERVER, {publish_video, Url, Publisher}, ?VIDEO_INFO_TIMEOUT).
+
+remove_video(Id, Publisher) ->
+	gen_server:call(?SERVER, {remove_video, Id, Publisher}).
 
 get_playlist() ->
 	gen_server:call(?SERVER, get_playlist).
@@ -79,12 +83,11 @@ init([]) ->
 %% ====================================================================
 handle_call({publish_video, Url, Publisher}, _From, State=#state{playlist=Playlist}) ->
     lager:debug("Video published to playlist: ~p", [Url]),
-	case get_video_details(Url) of
+	case python_server:get_video_details(Url) of
 		Error when is_atom(Error) ->	%% wrong_url_error or timeout
 			NewPlaylist = Playlist,
 			Reply = Error;
-		{Title, Duration} ->
-			Id = os:system_time(),
+		{Title, Duration, Id} ->
 			Video = #video{url=Url, publisher=Publisher, title=Title, duration=Duration, id=Id},
 			NewPlaylist = Playlist ++ [Video],	%% new video goes to back of playlist
 			next_video(),
@@ -197,15 +200,4 @@ code_change(_OldVsn, State, _Extra) ->
 %% ====================================================================
 %% Internal functions
 %% ====================================================================
-
-get_video_details(Url) ->
-	case python_server:get_video_details(Url) of
-		wrong_url_error ->
-			wrong_url_error;
-		timeout ->
-			timeout;
-		JsonReply ->
-			[{<<"title">>, Title}, {<<"duration">>, Duration}] = jsx:decode(JsonReply),
-			{Title, Duration}
-	end.
 
