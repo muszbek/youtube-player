@@ -11,9 +11,9 @@
 -define(TEST_URL_NEW, << "test_url_new" >>).
 -define(TEST_URL_WRONG, << "test_url_wrong" >>).	%% this is an url that youtube does not recognize as video
 
--define(TEST_VIDEO, {video, ?TEST_URL, _Publisher, <<"test_title">>, <<"test_dur">>}).
--define(TEST_VIDEO_NEW, {video, ?TEST_URL_NEW, _Publisher, <<"test_title_new">>, <<"test_dur_new">>}).
--define(NO_VIDEO, {video, undefined, undefined, undefined, undefined}).
+-define(TEST_VIDEO, {video, ?TEST_URL, _Publisher, <<"test_title">>, <<"test_dur">>, _Id}).
+-define(TEST_VIDEO_NEW, {video, ?TEST_URL_NEW, _PublisherNew, <<"test_title_new">>, <<"test_dur_new">>, _IdNew}).
+-define(NO_VIDEO, {video, undefined, undefined, undefined, undefined, undefined}).
 
 -define(setup(F), {foreach, fun setup/0, fun cleanup/1, F}).
 

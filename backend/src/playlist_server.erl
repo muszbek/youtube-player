@@ -84,7 +84,8 @@ handle_call({publish_video, Url, Publisher}, _From, State=#state{playlist=Playli
 			NewPlaylist = Playlist,
 			Reply = Error;
 		{Title, Duration} ->
-			Video = #video{url=Url, publisher=Publisher, title=Title, duration=Duration},
+			Id = os:system_time(),
+			Video = #video{url=Url, publisher=Publisher, title=Title, duration=Duration, id=Id},
 			NewPlaylist = Playlist ++ [Video],	%% new video goes to back of playlist
 			next_video(),
 			Reply = ok

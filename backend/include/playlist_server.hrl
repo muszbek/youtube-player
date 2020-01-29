@@ -1,4 +1,5 @@
 -record(video, {url,
 				publisher,
 				title,
-				duration}).
+				duration,
+				id}).
