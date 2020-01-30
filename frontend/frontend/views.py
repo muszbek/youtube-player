@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.template import loader
+from django.contrib import messages
 from urllib3.connection import NewConnectionError
 from urllib3.exceptions import MaxRetryError
 from requests.exceptions import ConnectionError
@@ -53,8 +54,12 @@ def send_url(request):
             message = json.loads(response.text)['message']
             print("*** Video sent to playlist, reply: " + message + " ***")
             
+            if message != "ok":
+                messages.info(request, message)
+            
         except ValidationError as e:
             print(e)
+            messages.info(request, str(e))
             
         except (ConnectionRefusedError, NewConnectionError, MaxRetryError, 
                 ConnectionError, ConnectionResetError) as e:
@@ -73,6 +78,9 @@ def playlist_remove(request):
             response = requests.post(SERVER_URL + "/remove", json=payload)
             message = json.loads(response.text)['message']
             print("*** Removing from playlist: " + selectedID + ", reply: " + message + " ***")
+            
+            if message != "ok":
+                messages.info(request, message)
         
     return HttpResponseRedirect("../")
 
