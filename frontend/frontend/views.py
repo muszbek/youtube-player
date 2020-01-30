@@ -50,7 +50,8 @@ def send_url(request):
             
             payload = {'url': sentUrl, 'publisher': senderID}
             response = requests.post(SERVER_URL, json=payload)
-            print("*** Video sent to playlist ***")
+            message = json.loads(response.text)['message']
+            print("*** Video sent to playlist, reply: " + message + " ***")
             
         except ValidationError as e:
             print(e)
@@ -68,10 +69,10 @@ def playlist_remove(request):
         selectedID = request.GET.get('title_list')
         
         if selectedID and selectedID != "undefined":
-            print("Removing from playlist: " + selectedID)
-            
             payload = {'id': int(selectedID), 'publisher': senderID}
             response = requests.post(SERVER_URL + "/remove", json=payload)
+            message = json.loads(response.text)['message']
+            print("*** Removing from playlist: " + selectedID + ", reply: " + message + " ***")
         
     return HttpResponseRedirect("../")
 

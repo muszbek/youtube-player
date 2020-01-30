@@ -150,15 +150,15 @@ post_video(#{body := Body}) ->
 	lager:debug("Video posted on REST API: ~p", [Body]),
 	Publisher = maps:get(publisher, Body),
 	Video = maps:get(url, Body),
-	_IsOk = playlist_server:publish_video(Video, Publisher),
-	{201, Body}.
+	IsOk = playlist_server:publish_video(Video, Publisher),
+	{201, #{message => IsOk}}.
 
 remove_video(#{body := Body}) ->
 	lager:debug("Remove video on REST API: ~p", [Body]),
 	Id = maps:get(id, Body),
 	Publisher = maps:get(publisher, Body),
-	_IsOk = playlist_server:remove_video(Id, Publisher),
-	{201, Body}.
+	IsOk = playlist_server:remove_video(Id, Publisher),
+	{201, #{message => IsOk}}.
 
 get_playlist(_Request) ->
 	{CurrVid, Playlist} = playlist_server:get_playlist(),
