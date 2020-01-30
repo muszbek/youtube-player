@@ -28,7 +28,7 @@ def register_handler(dest):
     return Atom(b"ok")
 
 
-def play_video(urlBin=b"https://www.youtube.com/watch?v=nNPnQJUuAyc"):
+def play_video(urlBin):
     url = urlBin.decode("utf-8")
     
     try:

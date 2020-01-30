@@ -3,7 +3,7 @@ services:
 
   youtube-player-backend:
     container_name: youtube-player-backend
-    image: youtube-player-backend:v0.2
+    image: youtube-player-backend:v0.3
     build:
       context: ./backend
     expose:
@@ -30,7 +30,7 @@ services:
       
   youtube-player-frontend:
     container_name: youtube-player-frontend
-    image: youtube-player-frontend:v0.2
+    image: youtube-player-frontend:v0.3
     build:
       context: ./frontend
     expose:
