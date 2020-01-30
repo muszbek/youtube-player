@@ -87,10 +87,14 @@ init([]) ->
 %% ====================================================================
 handle_call({get_video_details, Url}, _From, State=#state{python_id=Python}) ->
 	lager:debug("Asking for video details at url: ~p", [Url]),
-	Details = python_lib:get_video_details(Python, Url),
-	[{<<"title">>, Title}, {<<"duration">>, Duration}] = jsx:decode(Details),
-	Id = os:system_time(),
-	Reply = {Title, Duration, Id},
+	Reply = case python_lib:get_video_details(Python, Url) of
+		wrong_url_error ->
+			wrong_url_error;
+		Json ->
+			[{<<"title">>, Title}, {<<"duration">>, Duration}] = jsx:decode(Json),
+			Id = os:system_time(),
+			{Title, Duration, Id}
+			end,
 	{reply, Reply, State};
 
 handle_call(stop, _From, State) ->
