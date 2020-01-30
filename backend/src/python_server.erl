@@ -15,13 +15,16 @@
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([start_link/0, play_video/1, get_video_details/1]).
+-export([start_link/0, play_video/1, stop_video/0, get_video_details/1]).
 
 start_link() ->
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 play_video(Url) ->
 	gen_server:cast(?SERVER, {play, Url}).
+
+stop_video() ->
+	gen_server:cast(?SERVER, stop_video).
 
 get_video_details(Url) ->
 	try
@@ -121,6 +124,10 @@ handle_cast({play, Url}, State=#state{python_id=Python}) ->
 			gen_fsm:sync_send_event(youtube_player_fsm, {error_skipping_video, Url}),
 			{noreply, State}
 	end;
+
+handle_cast(stop_video, State=#state{python_id=Python}) ->
+	ok = python_lib:stop_video(Python),
+	{noreply, State};
 
 handle_cast(finished, State=#state{last_played=Url}) ->
 	lager:info("got cast finished"),
