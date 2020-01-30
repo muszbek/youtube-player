@@ -98,6 +98,7 @@ handle_call({publish_video, Url, Publisher}, _From, State=#state{playlist=Playli
 handle_call({remove_video, Id, Publisher}, _From, 
 			State=#state{current_video=#video{id=Id, publisher=Publisher, url=Url}}) ->
 	lager:debug("Stopping current video ~p", [Url]),
+	python_server:stop_video(),
 	{reply, ok, State};
 
 handle_call({remove_video, Id, _Publisher}, _From, 
