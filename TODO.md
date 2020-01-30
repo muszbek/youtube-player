@@ -2,7 +2,6 @@
 - apply edoc
 
 - handle errors with URL inspection in frontend
-- remove your own songs from playlist
 
 
 ## FRONTEND
@@ -11,3 +10,4 @@
 - add better alignment on phone
 - add better server (apache?)
 - add favico
+- notifications when publish or remove video failed

@@ -46,6 +46,13 @@ remove_from_playlist_test_() ->
 			 fun leave_in_playlist_when_publisher_not_matching/1,
 			 fun leave_in_playlist_when_id_not_found/1])}.
 
+remove_current_video_test_() ->
+	{"Stop playing current video and go to the next in playlist if publisher is matching.",
+	 ?setup([fun remove_current_video_when_publisher_matching/1,
+			 fun leave_current_video_when_publisher_not_matching/1,
+			 fun leave_current_video_when_id_not_matching/1,
+			 fun do_not_crash_when_trying_to_remove_nothing/1])}.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% SETUP FUNCTIONS %%%
@@ -58,6 +65,7 @@ setup() ->
 	
 	meck:new(python_server),
 	meck:expect(python_server, get_video_details, fun mock_get_video_details/1),
+	meck:expect(python_server, stop_video, fun mock_stop_video/0),
 	ok.
 
 cleanup(_) ->
@@ -187,6 +195,42 @@ leave_in_playlist_when_id_not_found(_) ->
 	?_assertMatch({state, [?TEST_VIDEO_NEW], ?TEST_VIDEO}, State).
 
 
+%% remove_current_video_test
+remove_current_video_when_publisher_matching(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL, self()),
+	playlist_server:publish_video(?TEST_URL_NEW, self()),
+	playlist_server:remove_video(1, self()),
+	State = get_state(),
+	?_assertMatch({state, [], ?TEST_VIDEO_NEW}, State).
+
+leave_current_video_when_publisher_not_matching(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL, not_me),
+	playlist_server:publish_video(?TEST_URL_NEW, self()),
+	playlist_server:remove_video(1, self()),
+	State = get_state(),
+	?_assertMatch({state, [?TEST_VIDEO_NEW], ?TEST_VIDEO}, State).
+
+leave_current_video_when_id_not_matching(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:publish_video(?TEST_URL, self()),
+	playlist_server:publish_video(?TEST_URL_NEW, self()),
+	playlist_server:remove_video(3, self()),
+	State = get_state(),
+	?_assertMatch({state, [?TEST_VIDEO_NEW], ?TEST_VIDEO}, State).
+
+do_not_crash_when_trying_to_remove_nothing(_) ->
+	playlist_server:start_link(),
+	youtube_player_fsm:start_link(),
+	playlist_server:remove_video(1, self()),
+	State = get_state(),
+	?_assertMatch({state, [], ?NO_VIDEO}, State).
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%% HELPER FUNCTIONS %%%
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -227,6 +271,15 @@ mock_new_video_event(Url) ->
 mock_play_video(Url) ->
 	ets:insert(mock_fsm_state, {current_video, Url}),
 	timer:sleep(?VIDEO_LENGTH),
+	try ets:delete(mock_fsm_state, current_video) of
+		true -> ok
+	catch
+		error:badarg -> ok
+	end,
+	playlist_server:next_video().
+
+
+mock_stop_video() ->
 	try ets:delete(mock_fsm_state, current_video) of
 		true -> ok
 	catch
