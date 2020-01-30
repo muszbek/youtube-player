@@ -100,7 +100,7 @@ def _createPlaylistContext(isServerReachable):
 
 def _getPlaylistContext():
     response = requests.get(SERVER_URL + "/list")
-    body = json.loads(response.text)['message']
+    body = json.loads(response.text)
     
     return {
         'current_video': body['current_video'],

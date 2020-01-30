@@ -167,7 +167,7 @@ get_playlist(_Request) ->
 	JsonReply = #{current_video => MapCurrVid,
 				  playlist => MapPlaylist},
 	lager:debug("Playlist reply: ~p", [JsonReply]),
-	{200, #{message => JsonReply}}.
+	{200, JsonReply}.
 
 get_port() ->
 	case os:getenv("YP_BACKEND_PORT") of
